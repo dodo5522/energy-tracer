@@ -4,6 +4,7 @@ import {
   ListItem,
   Paper,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 import {useQuery} from '@tanstack/react-query';
@@ -86,15 +87,32 @@ const Configuration = ({search}: ConfigurationProps) => {
                 bgcolor: 'rgba(255, 255, 255, 0.1)',
                 backdropFilter: 'blur(8px)',
                 boxShadow: 1,
+                color: 'common.white',
               }}
             >
               <Stack direction="row" spacing={2}>
-                <Typography variant="body1" sx={{color: 'common.white'}}>
-                  {label.label}
-                </Typography>
-                <Typography variant="body1" sx={{color: 'common.white'}}>
-                  {label.remark}
-                </Typography>
+                <TextField
+                  placeholder="label"
+                  size="small"
+                  defaultValue={label.label}
+                  slotProps={{
+                    input: {
+                      readOnly: true,
+                      style: {color: 'white'},
+                    },
+                  }}
+                />
+                <TextField
+                  placeholder="remark"
+                  size="small"
+                  defaultValue={label.remark}
+                  slotProps={{
+                    input: {
+                      readOnly: true,
+                      style: {color: 'white'},
+                    },
+                  }}
+                />
               </Stack>
             </ListItem>
           ))}
