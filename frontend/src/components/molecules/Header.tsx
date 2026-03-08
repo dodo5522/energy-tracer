@@ -30,7 +30,7 @@ const Header = () => {
   if (!session?.user || isPending) {
     return (
       <>
-        <AppBar position="sticky" elevation={4} sx={{bgcolor: 'grey.900'}}>
+        <AppBar position="fixed" elevation={4} sx={{bgcolor: 'grey.900'}}>
           <Toolbar sx={{minHeight: 72}}>
             <Skeleton
               variant="rounded"

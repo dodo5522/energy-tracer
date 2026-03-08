@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import {Navigate} from '@tanstack/react-router';
 import {Loading} from '#/components/atoms';
+import {TemplateBody} from '#/components/templates';
 import {authClient} from '#/lib/auth-client';
 import type {LoginSearch} from '#/types';
 
@@ -27,8 +28,14 @@ const Top = ({search}: TopProps) => {
   }
 
   return (
-    <Box sx={{display: 'flex', justifyContent: 'center', px: 2, py: 10}}>
-      <Card sx={{width: '100%', maxWidth: 420}}>
+    <TemplateBody>
+      <Card
+        sx={{
+          width: '100%',
+          maxWidth: 420,
+          border: '8px solid rgba(0, 0, 0, 0.1)',
+        }}
+      >
         <CardContent>
           <Stack spacing={3}>
             <Box>
@@ -73,7 +80,7 @@ const Top = ({search}: TopProps) => {
           </Stack>
         </CardContent>
       </Card>
-    </Box>
+    </TemplateBody>
   );
 };
 

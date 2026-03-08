@@ -12,6 +12,7 @@ import {
 import {Navigate} from '@tanstack/react-router';
 import {type SubmitEvent, useState} from 'react';
 import {Loading} from '#/components/atoms';
+import {TemplateBody} from '#/components/templates';
 import {authClient} from '#/lib/auth-client';
 
 interface LogInProps {
@@ -68,8 +69,14 @@ const LogIn = ({redirectTo}: LogInProps) => {
   };
 
   return (
-    <Box sx={{display: 'flex', justifyContent: 'center', py: 10, px: 2}}>
-      <Card sx={{width: '100%', maxWidth: 420}}>
+    <TemplateBody>
+      <Card
+        sx={{
+          width: '100%',
+          maxWidth: 420,
+          border: '8px solid rgba(0, 0, 0, 0.1)',
+        }}
+      >
         <CardContent>
           <Stack spacing={2.5}>
             <Box>
@@ -155,7 +162,7 @@ const LogIn = ({redirectTo}: LogInProps) => {
           </Stack>
         </CardContent>
       </Card>
-    </Box>
+    </TemplateBody>
   );
 };
 
