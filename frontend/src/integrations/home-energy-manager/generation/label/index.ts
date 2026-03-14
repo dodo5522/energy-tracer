@@ -1,9 +1,9 @@
 import type {Label} from './types';
 
-const BASE_URL = 'http://localhost:8000/generation/labels';
+const LABEL_API_URL = `${import.meta.env.VITE_BACKEND_BASE_URL}/generation/labels`;
 
 export const getLabels = async () => {
-  const res = await fetch(BASE_URL, {method: 'GET'});
+  const res = await fetch(LABEL_API_URL, {method: 'GET'});
 
   if (!res.ok) {
     throw new Error('Failed to get labels');
@@ -13,7 +13,7 @@ export const getLabels = async () => {
 };
 
 export const updateLabel = async ({label, remark}: Label) => {
-  const res = await fetch(`${BASE_URL}/${label}?remark=${remark}`, {
+  const res = await fetch(`${LABEL_API_URL}/${label}?remark=${remark}`, {
     method: 'PUT',
   });
 
@@ -23,7 +23,7 @@ export const updateLabel = async ({label, remark}: Label) => {
 };
 
 export const createLabel = async (label: Label) => {
-  const res = await fetch(BASE_URL, {
+  const res = await fetch(LABEL_API_URL, {
     method: 'POST',
     body: JSON.stringify(label),
   });
@@ -34,7 +34,7 @@ export const createLabel = async (label: Label) => {
 };
 
 export const deleteLabel = async (label: string) => {
-  const res = await fetch(`${BASE_URL}/${label}`, {
+  const res = await fetch(`${LABEL_API_URL}/${label}`, {
     method: 'DELETE',
   });
 

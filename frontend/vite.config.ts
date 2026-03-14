@@ -17,6 +17,7 @@ const config = defineConfig({
       },
     }),
   ],
+  envDir: '..',
 });
 
 export default config;
