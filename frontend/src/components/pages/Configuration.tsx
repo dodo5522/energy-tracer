@@ -12,7 +12,7 @@ import {Navigate} from '@tanstack/react-router';
 import {RefreshCw} from 'lucide-react';
 import {Loading} from '#/components/atoms';
 import {TemplateBody} from '#/components/templates';
-import {getLabels} from '#/integrations/home-energy-manager/generation';
+import {labelsGetterQueryOptions} from '#/integrations/home-energy-manager/generation';
 import {authClient} from '#/lib/auth-client.ts';
 import type {LoginSearch} from '#/types';
 
@@ -27,10 +27,7 @@ const Configuration = ({search}: ConfigurationProps) => {
     isFetching,
     isPending,
     refetch,
-  } = useQuery({
-    queryKey: ['labels'],
-    queryFn: getLabels,
-  });
+  } = useQuery(labelsGetterQueryOptions);
 
   if (isPending) {
     return <Loading/>;

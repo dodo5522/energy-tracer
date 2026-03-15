@@ -7,6 +7,10 @@ import {
 import type {Label} from './types';
 
 const getLabels = async () => getLabelsServerFn();
+const labelsGetterQueryOptions = {
+  queryKey: ['labels'],
+  queryFn: getLabels,
+};
 
 const updateLabel = async (label: Label) =>
   updateLabelServerFn({data: label});
@@ -17,4 +21,11 @@ const createLabel = async (label: Label) =>
 const deleteLabel = async (label: string) =>
   deleteLabelServerFn({data: {label}});
 
-export {createLabel, deleteLabel, updateLabel, getLabels, type Label};
+export {
+  createLabel,
+  deleteLabel,
+  updateLabel,
+  getLabels,
+  labelsGetterQueryOptions,
+  type Label,
+};

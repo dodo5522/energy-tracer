@@ -2,7 +2,8 @@ import {createServerFn} from '@tanstack/react-start';
 import {deleteLabelSchema, labelSchema} from './schemas.ts';
 import type {Label} from './types';
 
-const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL;
+//const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL;
+const BACKEND_BASE_URL = 'http://localhost:8000';
 
 const getLabelsServerFn = createServerFn({method: 'GET'}).handler(
   async () => {

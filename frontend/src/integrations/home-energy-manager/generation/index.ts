@@ -1,1 +1,7 @@
-export {createLabel, deleteLabel, getLabels, updateLabel} from './label';
+export {
+  createLabel,
+  deleteLabel,
+  getLabels,
+  labelsGetterQueryOptions,
+  updateLabel,
+} from './label';
