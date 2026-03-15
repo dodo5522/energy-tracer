@@ -1,6 +1,6 @@
 # 開発ガイドライン
 
-最終更新日: 2026-02-25
+最終更新日: 2026-03-15
 
 ## 1. 目的
 
@@ -124,7 +124,30 @@
 - UI 層から直接 `fetch` を乱立させず、API クライアント層を分離する。
 - 認証・データ取得などの基盤連携コードは `src/integrations/` / `src/lib/` にまとめる。
 
-## 5.4 開発・確認コマンド
+### 5.4 frontend API 連携ルール
+
+- browser から Rust バックエンド API へ直接 `fetch` しない。
+- Rust バックエンド API 連携は、原則として TanStack Start の server function を使って実装する。
+- page component や UI component は、`src/integrations/` 配下で公開された関数だけを呼ぶ。
+- backend URL、秘密情報、認証ヘッダ付与などの server-only な処理は server function の handler 内へ閉じ込める。
+- server-only な環境変数は `process.env` から読む。例: `BACKEND_BASE_URL`
+- browser から参照する必要がある公開前提の値だけ `VITE_` プレフィックス付き環境変数を使う。
+- `src/integrations/` 配下では、以下の責務分離を意識する。
+    - server function 定義
+    - 入出力の型定義
+    - backend API 呼び出し処理
+    - 必要に応じたレスポンス変換やエラー変換
+- 共通化の判断は早すぎる抽象化を避ける。まずは機能単位で閉じた server function を実装し、重複が明確になってから共通 client を切り出す。
+
+参考:
+- TanStack Start Server Functions
+  - https://tanstack.com/start/latest/docs/framework/react/guide/server-functions
+- TanStack Start Environment Variables
+  - https://tanstack.com/start/latest/docs/framework/react/guide/environment-variables
+- TanStack Start Execution Model
+  - https://tanstack.com/start/latest/docs/framework/react/guide/execution-model
+
+## 5.5 開発・確認コマンド
 
 - `cd frontend && pnpm install` で依存関係をインストール。
 - `cd frontend && pnpm run dev` で開発サーバを起動。
@@ -135,7 +158,7 @@
 - Node / `pnpm` のバージョン番号は `AGENTS.md` に固定値を書かず、`frontend/package.json`（`engines` / `packageManager`）と
   `pnpm` 設定（例: `frontend/.npmrc`）を参照する。
 
-## 5.5 テスト方針
+## 5.6 テスト方針
 
 - 単体テストを優先し、変換・バリデーション・ユーティリティを主対象とする。
 - 重要画面には最小限の統合テストを追加し、SSR 初期表示と API 連携の回帰を検知する。

@@ -1,44 +1,20 @@
+import {
+  createLabelServerFn,
+  deleteLabelServerFn,
+  getLabelsServerFn,
+  updateLabelServerFn,
+} from './crud.ts';
 import type {Label} from './types';
 
-const LABEL_API_URL = `${import.meta.env.VITE_BACKEND_BASE_URL}/generation/labels`;
+const getLabels = async () => getLabelsServerFn();
 
-export const getLabels = async () => {
-  const res = await fetch(LABEL_API_URL, {method: 'GET'});
+const updateLabel = async (label: Label) =>
+  updateLabelServerFn({data: label});
 
-  if (!res.ok) {
-    throw new Error('Failed to get labels');
-  }
+const createLabel = async (label: Label) =>
+  createLabelServerFn({data: label});
 
-  return (await res.json()) as Label[];
-};
+const deleteLabel = async (label: string) =>
+  deleteLabelServerFn({data: {label}});
 
-export const updateLabel = async ({label, remark}: Label) => {
-  const res = await fetch(`${LABEL_API_URL}/${label}?remark=${remark}`, {
-    method: 'PUT',
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed to update label');
-  }
-};
-
-export const createLabel = async (label: Label) => {
-  const res = await fetch(LABEL_API_URL, {
-    method: 'POST',
-    body: JSON.stringify(label),
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed to create label');
-  }
-};
-
-export const deleteLabel = async (label: string) => {
-  const res = await fetch(`${LABEL_API_URL}/${label}`, {
-    method: 'DELETE',
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed to delete label');
-  }
-};
+export {createLabel, deleteLabel, updateLabel, getLabels, type Label};
