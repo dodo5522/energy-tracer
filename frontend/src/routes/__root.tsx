@@ -14,18 +14,27 @@ import {
 import appCss from '#/styles.css?url';
 import Header from '../components/molecules/Header.tsx';
 
-interface MyRouterContext {
+interface Context {
   queryClient: QueryClient;
 }
 
-const RootDocument = ({children}: { children: ReactNode }) => {
+interface RootDocumentProps {
+  children: ReactNode;
+  queryClient: QueryClient;
+}
+
+interface RootShellProps {
+  children: ReactNode;
+}
+
+const RootDocument = ({children, queryClient}: RootDocumentProps) => {
   return (
     <html lang="en">
     <head>
       <HeadContent/>
     </head>
     <body>
-    <TanStackQueryProvider>
+    <TanStackQueryProvider queryClient={queryClient}>
       <Header/>
       {children}
       <TanStackDevtools
@@ -47,7 +56,14 @@ const RootDocument = ({children}: { children: ReactNode }) => {
   );
 };
 
-export const Route = createRootRouteWithContext<MyRouterContext>()({
+const RootShell = ({children}: RootShellProps) => {
+  const queryClient = Route.useRouteContext({
+    select: (context) => context.queryClient,
+  });
+  return <RootDocument queryClient={queryClient}>{children}</RootDocument>;
+};
+
+export const Route = createRootRouteWithContext<Context>()({
   head: () => ({
     meta: [
       {
@@ -68,5 +84,5 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
     ],
   }),
-  shellComponent: RootDocument,
+  shellComponent: RootShell,
 });
