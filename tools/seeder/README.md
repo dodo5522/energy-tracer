@@ -39,7 +39,7 @@ uv run seeder \
     - マスタデータと measurement の投稿先となるベース URL
     - デフォルト: `http://localhost:8000/generation`
 - `-m` / `--post-master`
-    - measurement の投入前に `label` / `sub_system` / `unit` のマスタデータを登録する
+    - measurement の投入前に `label` / `system` / `unit` のマスタデータを登録する
     - 省略時はマスタデータを登録しない
 - `csv_files`
     - `measurement` として投入する CSV ファイルを 1 つ以上指定する必須の位置引数

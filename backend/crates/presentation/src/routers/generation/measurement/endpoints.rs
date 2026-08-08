@@ -11,7 +11,7 @@ use axum::{
 use layer_infra::{
     repository::measurement::MeasurementRepository, unit_of_work::UnitOfWorkFactory,
 };
-use layer_use_case::measurement::MeasurementUseCase;
+use layer_use_case::measurement::RecordMeasurementUseCase;
 
 struct ErrorMapper {}
 impl ErrorMapperTrait for ErrorMapper {}
@@ -34,9 +34,9 @@ pub async fn post_measurements(
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let repo = MeasurementRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = MeasurementUseCase::new(repo, factory);
+    let use_case = RecordMeasurementUseCase::new(repo, factory);
     let created = use_case
-        .create(body.try_into().map_err(ErrorMapper::map_to_bad_request)?)
+        .record(body.try_into().map_err(ErrorMapper::map_to_bad_request)?)
         .await;
 
     match created {
@@ -68,7 +68,7 @@ pub async fn get_measurements(
 ) -> Result<(StatusCode, Json<GetResponse>), (StatusCode, Json<ErrorResponse>)> {
     let repo = MeasurementRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = MeasurementUseCase::new(repo, factory);
+    let use_case = RecordMeasurementUseCase::new(repo, factory);
     // let measurement = use_case
     //     .get(id)
     //     .await

@@ -13,7 +13,7 @@ pub struct MeasurementFilter {
     /// サブシステム
     #[param(example = "コントローラ", required = false)]
     #[serde(default, deserialize_with = "empty_string_as_none")]
-    pub sub_system: Option<String>,
+    pub system: Option<String>,
     /// ラベル
     #[param(example = "バッテリ電圧", required = false)]
     #[serde(default, deserialize_with = "empty_string_as_none")]
@@ -27,7 +27,7 @@ impl Default for MeasurementFilter {
         Self {
             to,
             from,
-            sub_system: None,
+            system: None,
             label: None,
         }
     }
@@ -46,7 +46,7 @@ pub struct MeasurementItem {
 #[derive(serde::Serialize, utoipa::ToSchema)]
 pub struct Response {
     /// 発電サブシステムの種類(e.g. 太陽光, 風力, ...)
-    pub sub_system: String,
+    pub system: String,
     /// 発電状況のラベル(e.g. バッテリ電圧, パネル出力電流, 風車回転数, ...)
     pub label: String,
     /// 物理量の値と計測日時

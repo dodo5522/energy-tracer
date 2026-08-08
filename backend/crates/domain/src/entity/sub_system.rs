@@ -11,7 +11,7 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SubSystemEntity {
     /// サブシステム
-    pub sub_system: String,
+    pub system: String,
     /// 補足
     pub remark: String,
 }

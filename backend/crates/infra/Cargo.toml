@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 async-trait.workspace = true
+chrono.workspace = true
 sea-orm.workspace = true
 layer-domain.workspace = true
 layer-use-case.workspace = true

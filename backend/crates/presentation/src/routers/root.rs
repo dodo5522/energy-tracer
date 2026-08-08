@@ -48,6 +48,8 @@ pub fn route(allowed_origins: Vec<String>, db: DatabaseConnection) -> Result<Rou
     generation::sub_system::post_sub_system,
     generation::sub_system::get_sub_system,
     generation::sub_system::get_sub_systems,
+    generation::sub_system::get_measurements_under_system,
+    generation::sub_system::get_measurements_under_system_and_label,
     generation::sub_system::update_sub_system,
     generation::unit::delete_unit,
     generation::unit::post_unit,

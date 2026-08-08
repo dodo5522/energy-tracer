@@ -1,4 +1,8 @@
-use super::{get::SubSystemItem, post::SubSystemPostRequest, put::UpdateSubSystemQuery};
+use super::{
+    get::{SubSystemItem, SubSystemMeasurementLabelFilter, SubSystemMeasurementRangeFilter},
+    post::SubSystemPostRequest,
+    put::UpdateSubSystemQuery,
+};
 use crate::{error_mapper::ErrorMapperTrait, errors::ErrorResponse, routers::RouterState};
 use axum::{
     Json,
@@ -6,8 +10,10 @@ use axum::{
     http::StatusCode,
 };
 use layer_domain::entity::SubSystemEntity;
+use layer_infra::repository::measurement::MeasurementRepository;
 use layer_infra::{repository::sub_system::SubSystemRepository, unit_of_work::UnitOfWorkFactory};
 use layer_use_case::interface::GenerationError;
+use layer_use_case::measurement::RecordMeasurementUseCase;
 use layer_use_case::sub_system::SubSystemUseCase;
 
 struct ErrorMapper {}
@@ -30,7 +36,7 @@ pub async fn post_sub_system(
     Json(body): Json<SubSystemPostRequest>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let system = SubSystemEntity {
-        sub_system: body.sub_system,
+        system: body.sub_system,
         remark: body.remark,
     };
     println!("Inserting sub system record: {:?}", system);
@@ -72,7 +78,7 @@ pub async fn update_sub_system(
     Query(query): Query<UpdateSubSystemQuery>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let system = SubSystemEntity {
-        sub_system: system,
+        system: system,
         remark: query.remark,
     };
     let repo = SubSystemRepository {};
@@ -172,4 +178,81 @@ pub async fn delete_sub_system(
         .await
         .map_err(ErrorMapper::map_generation_error)?;
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[utoipa::path(
+    get,
+    tag = "Generation - Sub System",
+    description = "Get measurements under the sub system with range of date time",
+    path = "/generation/sub_systems/{system}/measurements",
+    params(SubSystemMeasurementRangeFilter),
+    responses(
+        // (status = 200, description = "OK", body = GetResponse),
+        (status = 404, description = "Not Found", body = ErrorResponse),
+        (status = 500, description = "Internal Error", body = ErrorResponse)
+    )
+)]
+pub async fn get_measurements_under_system(
+    State(state): State<RouterState>,
+    Query(filter): Query<SubSystemMeasurementRangeFilter>,
+) -> Result<
+    (
+        StatusCode,
+        Json<crate::routers::generation::measurement::get::Response>,
+    ),
+    (StatusCode, Json<ErrorResponse>),
+> {
+    let repo = MeasurementRepository {};
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let use_case = RecordMeasurementUseCase::new(repo, factory);
+    // let measurement = use_case
+    //     .get(id)
+    //     .await
+    //     .map_err(ErrorMapper::map_generation_error)?;
+
+    Err((
+        StatusCode::NOT_FOUND,
+        Json(ErrorResponse {
+            message: "Measurement record not found".to_string(),
+        }),
+    ))
+}
+
+#[utoipa::path(
+    get,
+    tag = "Generation - Sub System",
+    description = "Get measurements under the sub system and label with range of date time",
+    path = "/generation/sub_systems/{system}/labels/{label}/measurements",
+    params(SubSystemMeasurementRangeFilter, SubSystemMeasurementLabelFilter),
+    responses(
+        // (status = 200, description = "OK", body = GetResponse),
+        (status = 404, description = "Not Found", body = ErrorResponse),
+        (status = 500, description = "Internal Error", body = ErrorResponse)
+    )
+)]
+pub async fn get_measurements_under_system_and_label(
+    State(state): State<RouterState>,
+    Query(query): Query<SubSystemMeasurementRangeFilter>,
+    Path(path): Path<SubSystemMeasurementLabelFilter>,
+) -> Result<
+    (
+        StatusCode,
+        Json<crate::routers::generation::measurement::get::Response>,
+    ),
+    (StatusCode, Json<ErrorResponse>),
+> {
+    let repo = MeasurementRepository {};
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let use_case = RecordMeasurementUseCase::new(repo, factory);
+    // let measurement = use_case
+    //     .get(id)
+    //     .await
+    //     .map_err(ErrorMapper::map_generation_error)?;
+
+    Err((
+        StatusCode::NOT_FOUND,
+        Json(ErrorResponse {
+            message: "Measurement record not found".to_string(),
+        }),
+    ))
 }
