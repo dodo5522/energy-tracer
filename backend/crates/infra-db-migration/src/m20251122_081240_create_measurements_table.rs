@@ -1,67 +1,14 @@
-use crate::helpers::{
-    group::{create_groups_table, drop_groups_table},
-    history::{create_histories_table, drop_histories_table},
-};
-use crate::iden::{Label, Measurement, SubSystem, Unit};
+use crate::iden::{Label, Measurement, System, Unit};
 use crate::sea_orm::{DbBackend, Statement};
-use sea_orm_migration::{prelude::*, schema::*};
+use sea_orm_migration::prelude::*;
+use sea_orm_migration::schema::{big_integer, float, string, timestamp_with_time_zone};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-impl Migration {
-    async fn create_sub_systems_table<'c>(
-        &'c self,
-        manager: &SchemaManager<'c>,
-    ) -> Result<(), DbErr> {
-        let table = format!(
-            "{}.{}",
-            SubSystem::Schema.to_string(),
-            SubSystem::Table.to_string()
-        );
-        manager
-            .create_table(
-                Table::create()
-                    .table((SubSystem::Schema, SubSystem::Table))
-                    .if_not_exists()
-                    .col(string(SubSystem::SubSystem).primary_key())
-                    .col(string(SubSystem::Remark).not_null().default(""))
-                    .col(
-                        timestamp_with_time_zone(SubSystem::CreatedAt)
-                            .not_null()
-                            .default(Expr::current_timestamp()),
-                    )
-                    .to_owned(),
-            )
-            .await?;
-        manager
-            .get_connection()
-            .execute(Statement::from_string(
-                DbBackend::Postgres,
-                format!(
-                    "COMMENT ON COLUMN {}.{} IS 'サブシステム (e.g. Array, Battery, ...)';",
-                    table,
-                    SubSystem::SubSystem.to_string()
-                ),
-            ))
-            .await?;
-        Ok(())
-    }
-
-    async fn drop_sub_systems_table<'c>(&self, manager: &SchemaManager<'c>) -> Result<(), DbErr> {
-        manager
-            .drop_table(
-                Table::drop()
-                    .table((SubSystem::Schema, SubSystem::Table))
-                    .to_owned(),
-            )
-            .await
-    }
-
-    async fn create_measurements_table<'c>(
-        &'c self,
-        manager: &SchemaManager<'c>,
-    ) -> Result<(), DbErr> {
+#[async_trait::async_trait]
+impl MigrationTrait for Migration {
+    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let table = format!(
             "{}.{}",
             Measurement::Schema.to_string(),
@@ -100,7 +47,7 @@ impl Migration {
                                 (Measurement::Schema, Measurement::Table),
                                 Measurement::SubSystem,
                             )
-                            .to((SubSystem::Schema, SubSystem::Table), SubSystem::SubSystem)
+                            .to((System::Schema, System::Table), System::System)
                             .on_delete(ForeignKeyAction::Restrict),
                     )
                     .foreign_key(
@@ -172,7 +119,7 @@ impl Migration {
             .execute(Statement::from_string(
                 DbBackend::Postgres,
                 format!(
-                    "COMMENT ON COLUMN {}.{} IS '計測日時';",
+                    "COMMENT ON COLUMN {}.{} IS '観測日時';",
                     table,
                     Measurement::MeasuredAt.to_string()
                 ),
@@ -183,24 +130,18 @@ impl Migration {
             .get_connection()
             .execute(Statement::from_string(
                 DbBackend::Postgres,
-                format!(
-                    r#"
-                    CREATE TRIGGER updated_at_setter
-                    BEFORE UPDATE ON {}
-                    FOR EACH ROW
-                    EXECUTE FUNCTION public.set_updated_at();
-                    "#,
-                    table
-                ),
+                r#"
+                CREATE TRIGGER updated_at_setter
+                BEFORE UPDATE ON generation.measurements
+                FOR EACH ROW
+                EXECUTE FUNCTION public.set_updated_at();
+                "#,
             ))
             .await?;
         Ok(())
     }
 
-    async fn drop_measurements_table<'c>(
-        &'c self,
-        manager: &SchemaManager<'c>,
-    ) -> Result<(), DbErr> {
+    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
             .drop_table(
                 Table::drop()
@@ -208,22 +149,5 @@ impl Migration {
                     .to_owned(),
             )
             .await
-    }
-}
-
-#[async_trait::async_trait]
-impl MigrationTrait for Migration {
-    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        self.create_sub_systems_table(manager).await?;
-        self.create_measurements_table(manager).await?;
-        drop_histories_table(manager).await?;
-        drop_groups_table(manager).await
-    }
-
-    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        create_groups_table(manager).await?;
-        create_histories_table(manager).await?;
-        self.drop_measurements_table(manager).await?;
-        self.drop_sub_systems_table(manager).await
     }
 }
