@@ -1,5 +1,5 @@
 use super::{
-    get::{SubSystemItem, SubSystemMeasurementLabelFilter, SubSystemMeasurementRangeFilter},
+    get::{SubSystemMeasurementLabelFilter, SubSystemMeasurementRangeFilter, SystemItem},
     post::SubSystemPostRequest,
     put::UpdateSubSystemQuery,
 };
@@ -9,12 +9,14 @@ use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
 };
-use layer_domain::entity::SubSystemEntity;
+use layer_domain::entity::SystemEntity;
 use layer_infra::repository::measurement::MeasurementRepository;
-use layer_infra::{repository::sub_system::SubSystemRepository, unit_of_work::UnitOfWorkFactory};
-use layer_use_case::interface::GenerationError;
-use layer_use_case::measurement::RecordMeasurementUseCase;
-use layer_use_case::sub_system::SubSystemUseCase;
+use layer_infra::{repository::system::SubSystemRepository, unit_of_work::UnitOfWorkFactory};
+use layer_use_case::{
+    interface::GenerationError,
+    measurement::RecordMeasurementUseCase,
+    system::{AddSystemUseCase, DeleteSystemUseCase, FetchSystemUseCase, UpdateSystemUseCase},
+};
 
 struct ErrorMapper {}
 impl ErrorMapperTrait for ErrorMapper {}
@@ -23,7 +25,7 @@ impl ErrorMapperTrait for ErrorMapper {}
     post,
     tag = "Generation - Sub System",
     description = "Create a new sub system",
-    path = "/generation/sub_systems",
+    path = "/generation/systems",
     request_body = SubSystemPostRequest,
     responses(
         (status = 201, description = "OK"),
@@ -31,21 +33,21 @@ impl ErrorMapperTrait for ErrorMapper {}
         (status = 500, description = "Internal Error", body = ErrorResponse),
     )
 )]
-pub async fn post_sub_system(
+pub async fn post_system(
     State(state): State<RouterState>,
     Json(body): Json<SubSystemPostRequest>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let system = SubSystemEntity {
-        system: body.sub_system,
+    let system = SystemEntity {
+        system: body.system,
         remark: body.remark,
     };
     println!("Inserting sub system record: {:?}", system);
 
     let repo = SubSystemRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = SubSystemUseCase::new(repo, factory);
+    let use_case = AddSystemUseCase::new(repo, factory);
 
-    if let Err(e) = use_case.create(system).await {
+    if let Err(e) = use_case.add(system).await {
         Err((
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(ErrorResponse {
@@ -61,7 +63,7 @@ pub async fn post_sub_system(
     put,
     tag = "Generation - Sub System",
     description = "Update the specified sub system",
-    path = "/generation/sub_systems/{system}",
+    path = "/generation/systems/{system}",
     params(
         UpdateSubSystemQuery,
         ("system", description = "Sub system name"),
@@ -72,20 +74,20 @@ pub async fn post_sub_system(
         (status = 500, description = "Internal Error", body = ErrorResponse),
     )
 )]
-pub async fn update_sub_system(
+pub async fn update_system(
     State(state): State<RouterState>,
     Path(system): Path<String>,
     Query(query): Query<UpdateSubSystemQuery>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let system = SubSystemEntity {
-        system: system,
+    let system = SystemEntity {
+        system,
         remark: query.remark,
     };
     let repo = SubSystemRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = SubSystemUseCase::new(repo, factory);
+    let use_case = UpdateSystemUseCase::new(repo, factory);
     let _ = use_case
-        .update(system)
+        .update(&system)
         .await
         .map_err(ErrorMapper::map_generation_error)?;
     Ok(StatusCode::NO_CONTENT)
@@ -95,27 +97,27 @@ pub async fn update_sub_system(
     get,
     tag = "Generation - Sub System",
     description = "Get existing sub systems",
-    path = "/generation/sub_systems",
+    path = "/generation/systems",
     responses(
-        (status = 200, description = "OK", body = Vec<SubSystemItem>),
+        (status = 200, description = "OK", body = Vec<SystemItem>),
         (status = 404, description = "Not Found", body = ErrorResponse),
         (status = 500, description = "Internal Error", body = ErrorResponse),
     )
 )]
-pub async fn get_sub_systems(
+pub async fn get_systems(
     State(state): State<RouterState>,
-) -> Result<(StatusCode, Json<Vec<SubSystemItem>>), (StatusCode, Json<ErrorResponse>)> {
+) -> Result<(StatusCode, Json<Vec<SystemItem>>), (StatusCode, Json<ErrorResponse>)> {
     let repo = SubSystemRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = SubSystemUseCase::new(repo, factory);
+    let use_case = FetchSystemUseCase::new(repo, factory);
     let systems = use_case
-        .get_all()
+        .fetch(None::<&String>)
         .await
         .map_err(ErrorMapper::map_generation_error)?;
 
     Ok((
         StatusCode::OK,
-        Json(systems.into_iter().map(SubSystemItem::from).collect()),
+        Json(systems.into_iter().map(SystemItem::from).collect()),
     ))
 }
 
@@ -123,26 +125,26 @@ pub async fn get_sub_systems(
     get,
     tag = "Generation - Sub System",
     description = "Get specified sub system",
-    path = "/generation/sub_systems/{system}",
+    path = "/generation/systems/{system}",
     responses(
-        (status = 200, description = "OK", body = SubSystemItem),
+        (status = 200, description = "OK", body = SystemItem),
         (status = 404, description = "Not Found", body = ErrorResponse),
         (status = 500, description = "Internal Error", body = ErrorResponse),
     )
 )]
-pub async fn get_sub_system(
+pub async fn get_system(
     State(state): State<RouterState>,
     Path(system): Path<String>,
-) -> Result<(StatusCode, Json<SubSystemItem>), (StatusCode, Json<ErrorResponse>)> {
+) -> Result<(StatusCode, Json<SystemItem>), (StatusCode, Json<ErrorResponse>)> {
     let repo = SubSystemRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = SubSystemUseCase::new(repo, factory);
-    let found_system = use_case
-        .get(&system)
+    let use_case = FetchSystemUseCase::new(repo, factory);
+    let found = use_case
+        .fetch(Some(&system))
         .await
         .map_err(ErrorMapper::map_generation_error)?;
 
-    if let Some(system) = found_system {
+    if let Some(system) = found.first() {
         Ok((StatusCode::OK, Json(system.into())))
     } else {
         Err(ErrorMapper::map_generation_error(
@@ -155,7 +157,7 @@ pub async fn get_sub_system(
     delete,
     tag = "Generation - Sub System",
     description = "Delete specified sub system",
-    path = "/generation/sub_systems/{system}",
+    path = "/generation/systems/{system}",
     params(
         ("system", description = "Sub system name"),
     ),
@@ -165,14 +167,13 @@ pub async fn get_sub_system(
         (status = 500, description = "Internal Error", body = ErrorResponse),
     )
 )]
-pub async fn delete_sub_system(
+pub async fn delete_system(
     State(state): State<RouterState>,
     Path(system): Path<String>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let repo = SubSystemRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = SubSystemUseCase::new(repo, factory);
-
+    let use_case = DeleteSystemUseCase::new(repo, factory);
     let _ = use_case
         .delete(system)
         .await
@@ -184,7 +185,7 @@ pub async fn delete_sub_system(
     get,
     tag = "Generation - Sub System",
     description = "Get measurements under the sub system with range of date time",
-    path = "/generation/sub_systems/{system}/measurements",
+    path = "/generation/systems/{system}/measurements",
     params(SubSystemMeasurementRangeFilter),
     responses(
         // (status = 200, description = "OK", body = GetResponse),
@@ -222,7 +223,7 @@ pub async fn get_measurements_under_system(
     get,
     tag = "Generation - Sub System",
     description = "Get measurements under the sub system and label with range of date time",
-    path = "/generation/sub_systems/{system}/labels/{label}/measurements",
+    path = "/generation/systems/{system}/labels/{label}/measurements",
     params(SubSystemMeasurementRangeFilter, SubSystemMeasurementLabelFilter),
     responses(
         // (status = 200, description = "OK", body = GetResponse),

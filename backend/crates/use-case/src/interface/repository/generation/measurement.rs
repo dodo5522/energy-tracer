@@ -24,16 +24,16 @@ pub trait MeasurementRepositoryTrait<Tx> {
     /// * `tx` - データベーストランザクション
     /// * `from` - 取得開始日時
     /// * `to` - 取得開始日時
-    /// * `sub_system` - 取得対象サブシステム
+    /// * `system` - 取得対象サブシステム
     /// * `labels` - 取得対象ラベル（オプション）
     /// # Returns
     /// * `Result<Vec<HistoryEntity>, GenerationRepositoryError>` - 成功時は発電状況のエンティティを返し、失敗時はエラーを返す
-    async fn get(
+    async fn fetch(
         &self,
         tx: &Tx,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-        sub_system: String,
+        system: String,
         labels: Option<Vec<String>>,
     ) -> Result<Vec<MeasurementEntity>, GenerationError>;
 

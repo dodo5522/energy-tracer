@@ -14,7 +14,7 @@ LABELS = [
     ("Kilowatt Hours", "積算電力量"),
 ]
 
-SUB_SYSTEMS = [
+SYSTEMS = [
     ("Battery", "蓄電池"),
     ("Array", "太陽光パネル"),
     ("WindTurbine", "風力タービン"),
@@ -41,8 +41,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.post_master:
         for label, remark in LABELS:
             post(f"{args.base_url}/labels", {"label": label, "remark": remark})
-        for system, remark in SUB_SYSTEMS:
-            post(f"{args.base_url}/sub_systems", {"sub_system": system, "remark": remark})
+        for system, remark in SYSTEMS:
+            post(f"{args.base_url}/systems", {"system": system, "remark": remark})
         for unit, remark in UNITS:
             post(f"{args.base_url}/units", {"unit": unit, "remark": remark})
 

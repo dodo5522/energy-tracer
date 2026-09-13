@@ -7,7 +7,10 @@ use axum::{
 };
 use layer_domain::entity::UnitEntity;
 use layer_infra::{repository::unit::UnitRepository, unit_of_work::UnitOfWorkFactory};
-use layer_use_case::{interface::GenerationError, unit::UnitUseCase};
+use layer_use_case::{
+    interface::GenerationError,
+    unit::{AddUnitUseCase, DeleteUnitUseCase, FetchUnitsUseCase, UpdateUnitUseCase},
+};
 
 struct ErrorMapper {}
 impl ErrorMapperTrait for ErrorMapper {}
@@ -39,9 +42,9 @@ pub async fn post_unit(
 
     let repo = UnitRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = UnitUseCase::new(repo, factory);
+    let use_case = AddUnitUseCase::new(repo, factory);
 
-    if let Err(e) = use_case.create(unit).await {
+    if let Err(e) = use_case.add(unit).await {
         Err((
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(ErrorResponse {
@@ -76,7 +79,7 @@ pub async fn update_unit(
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let repo = UnitRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = UnitUseCase::new(repo, factory);
+    let use_case = UpdateUnitUseCase::new(repo, factory);
 
     let _ = use_case
         .update(UnitEntity {
@@ -104,9 +107,9 @@ pub async fn get_units(
 ) -> Result<(StatusCode, Json<Vec<UnitItem>>), (StatusCode, Json<ErrorResponse>)> {
     let repo = UnitRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = UnitUseCase::new(repo, factory);
+    let use_case = FetchUnitsUseCase::new(repo, factory);
     let units = use_case
-        .get_all()
+        .fetch(None::<&String>)
         .await
         .map_err(ErrorMapper::map_generation_error)?;
 
@@ -136,14 +139,14 @@ pub async fn get_unit(
 ) -> Result<(StatusCode, Json<UnitItem>), (StatusCode, Json<ErrorResponse>)> {
     let repo = UnitRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = UnitUseCase::new(repo, factory);
+    let use_case = FetchUnitsUseCase::new(repo, factory);
     let found = use_case
-        .get(&unit)
+        .fetch(Some(&unit))
         .await
         .map_err(ErrorMapper::map_generation_error)?;
 
-    if let Some(found_unit) = found {
-        Ok((StatusCode::OK, Json(found_unit.into())))
+    if let Some(unit) = found.first() {
+        Ok((StatusCode::OK, Json(unit.into())))
     } else {
         Err(ErrorMapper::map_generation_error(
             GenerationError::NotFound(format!("Unit '{unit}' not found")),
@@ -171,9 +174,9 @@ pub async fn delete_unit(
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let repo = UnitRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = UnitUseCase::new(repo, factory);
+    let use_case = DeleteUnitUseCase::new(repo, factory);
     let _ = use_case
-        .delete(&unit)
+        .delete(unit)
         .await
         .map_err(ErrorMapper::map_generation_error)?;
     Ok(StatusCode::NO_CONTENT)

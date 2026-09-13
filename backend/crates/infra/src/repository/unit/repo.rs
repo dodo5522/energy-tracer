@@ -1,10 +1,10 @@
 use crate::{
     error_mapper::ErrorMapperTrait,
-    models::{prelude::Units, units::ActiveModel},
+    models::{prelude::*, units::*},
 };
-use layer_domain::{entity::UnitEntity, value_object};
+use layer_domain::entity::UnitEntity;
 use layer_use_case::interface::{GenerationError, UnitRepositoryTrait};
-use sea_orm::{DatabaseTransaction, entity::EntityTrait};
+use sea_orm::{DatabaseTransaction, entity::prelude::*};
 
 pub struct UnitRepository {}
 
@@ -15,68 +15,74 @@ impl UnitRepositoryTrait<DatabaseTransaction> for UnitRepository {
     async fn add(
         &self,
         tx: &DatabaseTransaction,
-        e: &UnitEntity,
-    ) -> Result<value_object::Unit, GenerationError> {
-        let res = Units::insert::<ActiveModel>(e.into())
+        unit: UnitEntity,
+    ) -> Result<i64, GenerationError> {
+        let result = Units::insert::<ActiveModel>(unit.into())
             .exec(tx)
             .await
             .map_err(Self::map_db_to_generation_error)?;
-        Ok(value_object::Unit::new(res.last_insert_id).map_err(Self::map_unknown_err)?)
+        Ok(result.last_insert_id)
     }
 
-    async fn get(
+    async fn find(
         &self,
         tx: &DatabaseTransaction,
-        unit: Option<&value_object::Unit>,
+        unit: Option<&String>,
     ) -> Result<Vec<UnitEntity>, GenerationError> {
         if let Some(unit) = unit {
-            let unit = Units::find_by_id(unit.to_string())
+            let found = Units::find()
+                .filter(Column::Unit.eq(unit))
                 .one(tx)
                 .await
                 .map_err(Self::map_db_to_generation_error)?;
-            if let Some(unit) = unit {
-                Ok(vec![unit.try_into()?])
+            if let Some(u) = found {
+                Ok(vec![u.try_into()?])
             } else {
-                Ok(vec![])
+                Err(GenerationError::NotFound(unit.into()))
             }
         } else {
             let units = Units::find()
                 .all(tx)
                 .await
                 .map_err(Self::map_db_to_generation_error)?;
-            let records = units
+            units
                 .into_iter()
                 .map(|u| Ok(u.try_into()?))
-                .collect::<Result<_, _>>()?;
-            Ok(records)
+                .collect::<Result<Vec<UnitEntity>, _>>()
         }
     }
 
     async fn update(
         &self,
         tx: &DatabaseTransaction,
-        e: &UnitEntity,
-    ) -> Result<UnitEntity, GenerationError> {
-        let result = Units::update::<ActiveModel>(e.into())
+        unit: &UnitEntity,
+    ) -> Result<i64, GenerationError> {
+        let result = Units::update::<ActiveModel>(unit.into())
             .exec(tx)
             .await
             .map_err(Self::map_db_to_generation_error)?;
-        Ok(result.try_into()?)
+        Ok(result.id)
     }
 
-    async fn delete(
-        &self,
-        tx: &DatabaseTransaction,
-        unit: &value_object::Unit,
-    ) -> Result<(), GenerationError> {
-        let result = Units::delete_by_id::<String>(unit.into())
-            .exec(tx)
+    async fn delete(&self, tx: &DatabaseTransaction, unit: String) -> Result<(), GenerationError> {
+        let found = Units::find()
+            .filter(Column::Unit.eq(&unit))
+            .one(tx)
             .await
             .map_err(Self::map_db_to_generation_error)?;
-        if result.rows_affected > 0 {
-            Ok(())
+
+        if let Some(u) = found {
+            let result = Units::delete::<ActiveModel>(u.into())
+                .exec(tx)
+                .await
+                .map_err(Self::map_db_to_generation_error)?;
+            if result.rows_affected == 1 {
+                Ok(())
+            } else {
+                Err(GenerationError::Unknown(unit))
+            }
         } else {
-            Err(GenerationError::NotFound(unit.into()))
+            Err(GenerationError::NotFound(unit))
         }
     }
 }

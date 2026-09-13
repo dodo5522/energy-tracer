@@ -9,7 +9,7 @@
 /// * Controller: 充放電コントローラ
 ///
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SubSystemEntity {
+pub struct SystemEntity {
     /// サブシステム
     pub system: String,
     /// 補足

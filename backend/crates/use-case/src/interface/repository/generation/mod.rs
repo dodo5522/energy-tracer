@@ -1,8 +1,8 @@
 mod errors;
 pub use errors::*;
 
-mod sub_system;
-pub use sub_system::*;
+mod system;
+pub use system::*;
 mod measurement;
 pub use measurement::*;
 mod label;

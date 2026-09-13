@@ -5,7 +5,9 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(schema_name = "generation", table_name = "units")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
+    #[sea_orm(primary_key)]
+    pub id: i64,
+    #[sea_orm(unique)]
     pub unit: String,
     pub remark: String,
     pub created_at: DateTimeWithTimeZone,

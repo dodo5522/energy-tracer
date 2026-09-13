@@ -22,7 +22,7 @@ impl MeasurementRepositoryTrait<DatabaseTransaction> for MeasurementRepository {
             .into_iter()
             .map(|new| ActiveModel {
                 unit: ActiveValue::Set(new.unit.into()),
-                sub_system: ActiveValue::Set(new.sub_system),
+                sub_system: ActiveValue::Set(new.system),
                 label: ActiveValue::Set(new.label),
                 value: ActiveValue::Set(new.value),
                 measured_at: ActiveValue::Set(new.monitored_at.into()),
@@ -38,12 +38,12 @@ impl MeasurementRepositoryTrait<DatabaseTransaction> for MeasurementRepository {
         Ok(())
     }
 
-    async fn get(
+    async fn fetch(
         &self,
         tx: &DatabaseTransaction,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-        sub_system: String,
+        system: String,
         labels: Option<Vec<String>>,
     ) -> Result<Vec<MeasurementEntity>, GenerationError> {
         // let h = Measurements::find_by_id::<i64>(id.into())

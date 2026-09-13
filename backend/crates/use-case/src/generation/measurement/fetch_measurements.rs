@@ -48,7 +48,7 @@ impl<
     /// # Arguments
     /// * `from` - 取得開始日時
     /// * `to` - 取得開始日時
-    /// * `sub_system` - 取得対象サブシステム
+    /// * `system` - 取得対象サブシステム
     /// * `labels` - 取得対象ラベル（オプション）
     /// # Returns
     /// * `Result<Option<MeasurementEntity>, GenerationError>` - 取得した発電状況
@@ -56,13 +56,13 @@ impl<
         self,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-        sub_system: String,
+        system: String,
         labels: Option<Vec<String>>,
     ) -> Result<Vec<MeasurementEntity>, GenerationError> {
         let uow = self.factory.begin().await.map_err(Self::map_db_err)?;
         Ok(self
             .repo
-            .get(uow.ref_tx(), from, to, sub_system, labels)
+            .fetch(uow.ref_tx(), from, to, system, labels)
             .await?)
     }
 }

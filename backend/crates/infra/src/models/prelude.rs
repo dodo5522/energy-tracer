@@ -2,5 +2,5 @@
 
 pub use super::labels::Entity as Labels;
 pub use super::measurements::Entity as Measurements;
-pub use super::sub_systems::Entity as SubSystems;
+pub use super::systems::Entity as Systems;
 pub use super::units::Entity as Units;

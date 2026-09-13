@@ -1,5 +1,5 @@
 use chrono::{DateTime, TimeDelta, Utc};
-use layer_domain::entity::SubSystemEntity;
+use layer_domain::entity::SystemEntity;
 
 #[derive(Debug, serde::Deserialize, utoipa::IntoParams)]
 pub struct SubSystemMeasurementRangeFilter {
@@ -30,15 +30,15 @@ pub struct SubSystemMeasurementLabelFilter {
 }
 
 #[derive(serde::Serialize, utoipa::ToSchema)]
-pub struct SubSystemItem {
+pub struct SystemItem {
     /// 発電サブシステムの種類
     pub system: String,
     /// 備考
     pub remark: String,
 }
 
-impl From<SubSystemEntity> for SubSystemItem {
-    fn from(e: SubSystemEntity) -> Self {
+impl From<SystemEntity> for SystemItem {
+    fn from(e: SystemEntity) -> Self {
         Self {
             system: e.system,
             remark: e.remark,
@@ -46,11 +46,21 @@ impl From<SubSystemEntity> for SubSystemItem {
     }
 }
 
-impl From<SubSystemItem> for SubSystemEntity {
-    fn from(sub_system_item: SubSystemItem) -> Self {
+impl From<&SystemEntity> for SystemItem {
+    fn from(e: &SystemEntity) -> Self {
+        let owned = e.to_owned();
         Self {
-            system: sub_system_item.system,
-            remark: sub_system_item.remark,
+            system: owned.system,
+            remark: owned.remark,
+        }
+    }
+}
+
+impl From<SystemItem> for SystemEntity {
+    fn from(system_item: SystemItem) -> Self {
+        Self {
+            system: system_item.system,
+            remark: system_item.remark,
         }
     }
 }
