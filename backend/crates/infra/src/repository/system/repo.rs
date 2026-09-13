@@ -4,7 +4,7 @@ use crate::{
 };
 use layer_domain::entity::SystemEntity;
 use layer_use_case::interface::{GenerationError, SubSystemRepositoryTrait};
-use sea_orm::{DatabaseTransaction, entity::prelude::*};
+use sea_orm::{DatabaseTransaction, IntoActiveValue, entity::prelude::*};
 
 pub struct SubSystemRepository {}
 
@@ -59,11 +59,26 @@ impl SubSystemRepositoryTrait<DatabaseTransaction> for SubSystemRepository {
         tx: &DatabaseTransaction,
         system: &SystemEntity,
     ) -> Result<i64, GenerationError> {
-        let result = Systems::update::<ActiveModel>(system.into())
+        let target = &system.system;
+        if let Some(found) = Systems::find()
+            .filter(Column::System.eq(target))
+            .one(tx)
+            .await
+            .map_err(Self::map_db_to_generation_error)?
+        {
+            let result = Systems::update(ActiveModel {
+                id: found.id.into_active_value(),
+                system: found.system.into_active_value(),
+                remark: found.remark.into_active_value(),
+                ..Default::default()
+            })
             .exec(tx)
             .await
             .map_err(Self::map_db_to_generation_error)?;
-        Ok(result.id)
+            Ok(result.id)
+        } else {
+            Err(GenerationError::NotFound(target.into()))
+        }
     }
 
     async fn delete(
