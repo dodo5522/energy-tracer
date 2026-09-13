@@ -13,7 +13,8 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table((Label::Schema, Label::Table))
                     .if_not_exists()
-                    .col(string(Label::Label).primary_key())
+                    .col(big_integer(Label::Id).primary_key().auto_increment())
+                    .col(string(Label::Label).not_null().unique_key())
                     .col(string(Label::Remark).not_null().default(""))
                     .col(
                         timestamp_with_time_zone(Label::CreatedAt)

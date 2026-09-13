@@ -8,47 +8,39 @@ pub trait LabelRepositoryTrait<Tx> {
     ///
     /// # Arguments
     /// * `tx` - データベーストランザクション
-    /// * `e` - 新規登録するラベルエンティティ
+    /// * `label` - 新規登録するラベルエンティティ
     /// # Returns
-    /// * `Result<String, GenerationRepositoryError>` - 成功時は登録後のラベルを返し、失敗時はエラーを返す
-    /// # Errors
-    /// * `GenerationRepositoryError` - 記録に失敗した場合のエラー
-    async fn add(&self, tx: &Tx, e: &LabelEntity) -> Result<String, GenerationError>;
+    /// * `Result<i64, GenerationRepositoryError>` - 成功時は登録後のラベルIDを返し、失敗時はエラーを返す
+    async fn add(&self, tx: &Tx, label: LabelEntity) -> Result<i64, GenerationError>;
 
     /// ラベルを取得する
     ///
     /// # Arguments
     /// * `tx` - データベーストランザクション
-    /// * `label` - 取得するラベルの名前。指定なければ全て取得する。
+    /// * `label` - 取得するラベル。指定なければ全て取得する。
     /// # Returns
     /// * `Result<Vec<LabelRecord>, GenerationRepositoryError>` - 成功時はラベルのエンティティを返し、失敗時はエラーを返す
-    /// # Errors
-    /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn get(
+    async fn find(
         &self,
         tx: &Tx,
-        label: Option<impl AsRef<str> + Send>,
+        label: Option<&String>,
     ) -> Result<Vec<LabelEntity>, GenerationError>;
 
     /// ラベルを更新する
     ///
     /// # Arguments
     /// * `tx` - データベーストランザクション
-    /// * `e` - 更新するラベルのエンティティ
+    /// * `label` - 更新するラベルのエンティティ
     /// # Returns
-    /// * `Result<LabelEntity, GenerationRepositoryError>` - 成功時は値を返し、失敗時はエラーを返す
-    /// # Errors
-    /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn update(&self, tx: &Tx, e: &LabelEntity) -> Result<LabelEntity, GenerationError>;
+    /// * `Result<i64, GenerationRepositoryError>` - 成功時はIDを返し、失敗時はエラーを返す
+    async fn update(&self, tx: &Tx, label: &LabelEntity) -> Result<i64, GenerationError>;
 
     /// ラベルを削除する
     ///
     /// # Arguments
     /// * `tx` - データベーストランザクション
-    /// * `label` - 削除するラベルの名前
+    /// * `label` - 削除するラベル
     /// # Returns
     /// * `Result<(), GenerationRepositoryError>` - 成功時は空のタプルを返し、失敗時はエラーを返す
-    /// # Errors
-    /// * `GenerationRepositoryError` - 削除に失敗した場合のエラー
-    async fn delete(&self, tx: &Tx, label: impl AsRef<str> + Send) -> Result<(), GenerationError>;
+    async fn delete(&self, tx: &Tx, label: String) -> Result<(), GenerationError>;
 }

@@ -1,22 +1,20 @@
 use crate::routers::RouterState;
 use axum::{
     Router,
-    extract::State,
     routing::{delete, get, post},
 };
 
 pub(crate) mod label;
 pub(crate) mod measurement;
-pub(crate) mod sub_system;
+pub(crate) mod system;
 pub(crate) mod unit;
 
 pub fn route() -> Router<RouterState> {
     Router::<RouterState>::new()
         .merge(Router::new().route(
             "/measurements",
-            get(measurement::get_measurements_with_range).post(measurement::post_measurements),
+            post(measurement::post_measurements).get(measurement::get_measurements),
         ))
-        .merge(Router::new().route("/measurements/{id}", get(measurement::get_measurement)))
         .merge(Router::new().route("/labels", post(label::post_label).get(label::get_labels)))
         .merge(
             Router::new().route(
@@ -27,17 +25,25 @@ pub fn route() -> Router<RouterState> {
             ),
         )
         .merge(Router::new().route(
-            "/sub_systems",
-            post(sub_system::post_sub_system).get(sub_system::get_sub_systems),
+            "/systems",
+            post(system::post_system).get(system::get_systems),
         ))
         .merge(
             Router::new().route(
-                "/sub_systems/{system}",
-                delete(sub_system::delete_sub_system)
-                    .get(sub_system::get_sub_system)
-                    .put(sub_system::update_sub_system),
+                "/systems/{system}",
+                delete(system::delete_system)
+                    .get(system::get_system)
+                    .put(system::update_system),
             ),
         )
+        .merge(Router::new().route(
+            "/systems/{system}/measurements",
+            get(system::get_measurements_under_system),
+        ))
+        .merge(Router::new().route(
+            "/systems/{system}/labels/{label}/measurements",
+            get(system::get_measurements_under_system_and_label),
+        ))
         .merge(Router::new().route("/units", post(unit::post_unit).get(unit::get_units)))
         .merge(
             Router::new().route(

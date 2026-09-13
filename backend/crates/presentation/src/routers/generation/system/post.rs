@@ -1,7 +1,7 @@
 #[derive(serde::Deserialize, utoipa::ToSchema)]
 pub struct SubSystemPostRequest {
     /// 発電サブシステムの種類
-    pub sub_system: String,
+    pub system: String,
     /// 備考
     pub remark: String,
 }

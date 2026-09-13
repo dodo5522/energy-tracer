@@ -1,10 +1,10 @@
 use crate::{
     error_mapper::ErrorMapperTrait,
-    models::{labels::ActiveModel, prelude::Labels},
+    models::{labels::*, prelude::*},
 };
 use layer_domain::entity::LabelEntity;
 use layer_use_case::interface::{GenerationError, LabelRepositoryTrait};
-use sea_orm::{DatabaseTransaction, entity::EntityTrait};
+use sea_orm::{DatabaseTransaction, QueryFilter, entity::prelude::*};
 
 pub struct LabelRepository {}
 
@@ -15,68 +15,74 @@ impl LabelRepositoryTrait<DatabaseTransaction> for LabelRepository {
     async fn add(
         &self,
         tx: &DatabaseTransaction,
-        e: &LabelEntity,
-    ) -> Result<String, GenerationError> {
-        let res = Labels::insert::<ActiveModel>(e.into())
+        label: LabelEntity,
+    ) -> Result<i64, GenerationError> {
+        let result = Labels::insert::<ActiveModel>(label.into())
             .exec(tx)
             .await
             .map_err(Self::map_db_to_generation_error)?;
-        Ok(res.last_insert_id)
+        Ok(result.last_insert_id)
     }
 
-    async fn get(
+    async fn find(
         &self,
         tx: &DatabaseTransaction,
-        label: Option<impl AsRef<str> + Send>,
+        label: Option<&String>,
     ) -> Result<Vec<LabelEntity>, GenerationError> {
         if let Some(label) = label {
-            let found = Labels::find_by_id(label.as_ref().to_string())
+            let found = Labels::find()
+                .filter(Column::Label.eq(label))
                 .one(tx)
                 .await
                 .map_err(Self::map_db_to_generation_error)?;
             if let Some(label) = found {
                 Ok(vec![label.into()])
             } else {
-                Ok(vec![])
+                Err(GenerationError::NotFound(label.into()))
             }
         } else {
             let labels = Labels::find()
                 .all(tx)
                 .await
                 .map_err(Self::map_db_to_generation_error)?;
-            let records = labels
+            labels
                 .into_iter()
                 .map(|label| Ok(label.into()))
-                .collect::<Result<_, _>>()?;
-            Ok(records)
+                .collect::<Result<Vec<LabelEntity>, _>>()
         }
     }
 
     async fn update(
         &self,
         tx: &DatabaseTransaction,
-        e: &LabelEntity,
-    ) -> Result<LabelEntity, GenerationError> {
-        let result = Labels::update::<ActiveModel>(e.into())
+        label: &LabelEntity,
+    ) -> Result<i64, GenerationError> {
+        let result = Labels::update::<ActiveModel>(label.into())
             .exec(tx)
             .await
             .map_err(Self::map_db_to_generation_error)?;
-        Ok(result.into())
+        Ok(result.id)
     }
 
-    async fn delete(
-        &self,
-        tx: &DatabaseTransaction,
-        label: impl AsRef<str> + Send,
-    ) -> Result<(), GenerationError> {
-        let result = Labels::delete_by_id(label.as_ref().to_string())
-            .exec(tx)
+    async fn delete(&self, tx: &DatabaseTransaction, label: String) -> Result<(), GenerationError> {
+        let found = Labels::find()
+            .filter(Column::Label.eq(&label))
+            .one(tx)
             .await
             .map_err(Self::map_db_to_generation_error)?;
-        if result.rows_affected == 1 {
-            Ok(())
+
+        if let Some(l) = found {
+            let result = Labels::delete::<ActiveModel>(l.into())
+                .exec(tx)
+                .await
+                .map_err(Self::map_db_to_generation_error)?;
+            if result.rows_affected > 0 {
+                Ok(())
+            } else {
+                Err(GenerationError::Unknown(label))
+            }
         } else {
-            Err(GenerationError::NotFound(label.as_ref().to_string()))
+            Err(GenerationError::NotFound(label))
         }
     }
 }

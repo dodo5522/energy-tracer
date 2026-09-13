@@ -7,7 +7,10 @@ use axum::{
 };
 use layer_domain::entity::LabelEntity;
 use layer_infra::{repository::label::LabelRepository, unit_of_work::UnitOfWorkFactory};
-use layer_use_case::{interface::GenerationError, label::LabelUseCase};
+use layer_use_case::{
+    interface::GenerationError,
+    label::{AddLabelUseCase, DeleteLabelUseCase, FetchLabelsUseCase, UpdateLabelUseCase},
+};
 
 struct ErrorMapper {}
 impl ErrorMapperTrait for ErrorMapper {}
@@ -30,15 +33,15 @@ pub async fn post_label(
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let label = LabelEntity {
         label: body.label,
-        remark: Some(body.remark),
+        remark: body.remark,
     };
     println!("Inserting label record: {:?}", label);
 
     let repo = LabelRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = LabelUseCase::new(repo, factory);
+    let use_case = AddLabelUseCase::new(repo, factory);
 
-    if let Err(e) = use_case.create(label).await {
+    if let Err(e) = use_case.add(label).await {
         Err((
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(ErrorResponse {
@@ -72,11 +75,11 @@ pub async fn update_label(
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let repo = LabelRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = LabelUseCase::new(repo, factory);
+    let use_case = UpdateLabelUseCase::new(repo, factory);
     let _ = use_case
         .update(LabelEntity {
             label,
-            remark: Some(query.remark),
+            remark: query.remark,
         })
         .await
         .map_err(ErrorMapper::map_generation_error)?;
@@ -99,9 +102,9 @@ pub async fn get_labels(
 ) -> Result<(StatusCode, Json<Vec<LabelItem>>), (StatusCode, Json<ErrorResponse>)> {
     let repo = LabelRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = LabelUseCase::new(repo, factory);
+    let use_case = FetchLabelsUseCase::new(repo, factory);
     let labels = use_case
-        .get_all()
+        .fetch(None::<&String>)
         .await
         .map_err(ErrorMapper::map_generation_error)?;
     let items = labels
@@ -131,21 +134,14 @@ pub async fn get_label(
 ) -> Result<(StatusCode, Json<LabelItem>), (StatusCode, Json<ErrorResponse>)> {
     let repo = LabelRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = LabelUseCase::new(repo, factory);
+    let use_case = FetchLabelsUseCase::new(repo, factory);
     let found = use_case
-        .get(&label)
+        .fetch(Some(&label))
         .await
         .map_err(ErrorMapper::map_generation_error)?;
 
-    if let Some(found_label) = found {
-        Ok((
-            StatusCode::OK,
-            Json(
-                found_label
-                    .try_into()
-                    .map_err(ErrorMapper::map_to_internal_server_error)?,
-            ),
-        ))
+    if let Some(label) = found.first() {
+        Ok((StatusCode::OK, Json(label.into())))
     } else {
         Err(ErrorMapper::map_generation_error(
             GenerationError::NotFound(format!("Label '{label}' not found")),
@@ -173,7 +169,7 @@ pub async fn delete_label(
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let repo = LabelRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = LabelUseCase::new(repo, factory);
+    let use_case = DeleteLabelUseCase::new(repo, factory);
     let _ = use_case
         .delete(label)
         .await

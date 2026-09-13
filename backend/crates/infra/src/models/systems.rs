@@ -3,10 +3,12 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(schema_name = "generation", table_name = "sub_systems")]
+#[sea_orm(schema_name = "generation", table_name = "systems")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub sub_system: String,
+    #[sea_orm(primary_key)]
+    pub id: i64,
+    #[sea_orm(unique)]
+    pub system: String,
     pub remark: String,
     pub created_at: DateTimeWithTimeZone,
 }

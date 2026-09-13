@@ -13,6 +13,16 @@ impl From<&UnitEntity> for ActiveModel {
     }
 }
 
+impl From<UnitEntity> for ActiveModel {
+    fn from(e: UnitEntity) -> Self {
+        Self {
+            unit: ActiveValue::set(e.unit.into()),
+            remark: ActiveValue::set(e.remark),
+            ..Default::default()
+        }
+    }
+}
+
 impl TryFrom<Model> for UnitEntity {
     type Error = GenerationError;
 

@@ -33,7 +33,7 @@ def post_measurements(base_url: str, csv_files: list[Path]):
             {
                 "value": float(row["value"]),
                 "unit": row["unit"],
-                "sub_system": convert_group(row["group"]),
+                "system": convert_group(row["group"]),
                 "label": row["label"],
             }
             for row in measurements_by_timestamp[timestamp]

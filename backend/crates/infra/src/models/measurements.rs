@@ -29,13 +29,13 @@ pub enum Relation {
     )]
     Labels,
     #[sea_orm(
-        belongs_to = "super::sub_systems::Entity",
+        belongs_to = "super::systems::Entity",
         from = "Column::SubSystem",
-        to = "super::sub_systems::Column::SubSystem",
+        to = "super::systems::Column::System",
         on_update = "NoAction",
         on_delete = "Restrict"
     )]
-    SubSystems,
+    Systems,
     #[sea_orm(
         belongs_to = "super::units::Entity",
         from = "Column::Unit",
@@ -52,9 +52,9 @@ impl Related<super::labels::Entity> for Entity {
     }
 }
 
-impl Related<super::sub_systems::Entity> for Entity {
+impl Related<super::systems::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::SubSystems.def()
+        Relation::Systems.def()
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::iden::{Group, Unit};
+use crate::iden::{System, Unit};
 use crate::sea_orm::{DbBackend, Statement};
 use sea_orm_migration::{prelude::*, schema::*};
 
@@ -13,8 +13,9 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table((Unit::Schema, Unit::Table))
                     .if_not_exists()
-                    .col(string(Unit::Unit).primary_key())
-                    .col(string(Group::Remark).not_null().default(""))
+                    .col(big_integer(Unit::Id).primary_key().auto_increment())
+                    .col(string(Unit::Unit).not_null().unique_key())
+                    .col(string(System::Remark).not_null().default(""))
                     .col(
                         timestamp_with_time_zone(Unit::CreatedAt)
                             .not_null()

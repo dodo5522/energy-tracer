@@ -6,4 +6,5 @@ edition.workspace = true
 [dependencies]
 async-trait.workspace = true
 layer-domain.workspace = true
+chrono.workspace = true
 polars = { version = "0.49.1", features = ["lazy"] }
