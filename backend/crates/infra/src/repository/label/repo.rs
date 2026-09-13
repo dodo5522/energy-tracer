@@ -4,7 +4,7 @@ use crate::{
 };
 use layer_domain::entity::LabelEntity;
 use layer_use_case::interface::{GenerationError, LabelRepositoryTrait};
-use sea_orm::{DatabaseTransaction, QueryFilter, entity::prelude::*};
+use sea_orm::{DatabaseTransaction, IntoActiveValue, QueryFilter, entity::prelude::*};
 
 pub struct LabelRepository {}
 
@@ -57,11 +57,26 @@ impl LabelRepositoryTrait<DatabaseTransaction> for LabelRepository {
         tx: &DatabaseTransaction,
         label: &LabelEntity,
     ) -> Result<i64, GenerationError> {
-        let result = Labels::update::<ActiveModel>(label.into())
+        let target = &label.label;
+        if let Some(found) = Labels::find()
+            .filter(Column::Label.eq(target))
+            .one(tx)
+            .await
+            .map_err(Self::map_db_to_generation_error)?
+        {
+            let result = Labels::update(ActiveModel {
+                id: found.id.into_active_value(),
+                label: found.label.into_active_value(),
+                remark: found.remark.into_active_value(),
+                ..Default::default()
+            })
             .exec(tx)
             .await
             .map_err(Self::map_db_to_generation_error)?;
-        Ok(result.id)
+            Ok(result.id)
+        } else {
+            Err(GenerationError::NotFound(target.into()))
+        }
     }
 
     async fn delete(&self, tx: &DatabaseTransaction, label: String) -> Result<(), GenerationError> {
