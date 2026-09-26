@@ -1,15 +1,72 @@
 use crate::{
     error_mapper::ErrorMapperTrait,
-    models::{measurements::ActiveModel, prelude::Measurements},
+    models::{
+        labels::{Column as LabelDbColumn, Entity as LabelDbEntity},
+        measurements::{ActiveModel as MeasurementDbActiveModel, Entity as MeasurementDbEntity},
+        systems::{Column as SystemDbColumn, Entity as SystemDbEntity},
+        units::{Column as UnitDbColumn, Entity as UnitDbEntity},
+    },
 };
 use chrono::{DateTime, Utc};
 use layer_domain::entity::MeasurementEntity;
 use layer_use_case::interface::{GenerationError, MeasurementRepositoryTrait};
-use sea_orm::{ActiveValue, DatabaseTransaction, entity::EntityTrait};
+use sea_orm::{ActiveValue, DatabaseTransaction};
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QuerySelect};
+use std::collections::HashMap;
 
 pub struct MeasurementRepository {}
 
 impl ErrorMapperTrait for MeasurementRepository {}
+
+impl MeasurementRepository {
+    async fn label_to_id(
+        tx: &DatabaseTransaction,
+        measurements: &[MeasurementEntity],
+    ) -> Result<HashMap<String, i64>, GenerationError> {
+        Ok(LabelDbEntity::find()
+            .select_only()
+            .columns([LabelDbColumn::Label, LabelDbColumn::Id])
+            .filter(LabelDbColumn::Label.is_in(measurements.iter().map(|m| &m.label)))
+            .into_tuple::<(String, i64)>()
+            .all(tx)
+            .await
+            .map_err(Self::map_db_to_generation_error)?
+            .into_iter()
+            .collect::<HashMap<String, i64>>())
+    }
+
+    async fn system_to_id(
+        tx: &DatabaseTransaction,
+        measurements: &[MeasurementEntity],
+    ) -> Result<HashMap<String, i64>, GenerationError> {
+        Ok(SystemDbEntity::find()
+            .select_only()
+            .columns([SystemDbColumn::System, SystemDbColumn::Id])
+            .filter(SystemDbColumn::System.is_in(measurements.iter().map(|m| &m.system)))
+            .into_tuple::<(String, i64)>()
+            .all(tx)
+            .await
+            .map_err(Self::map_db_to_generation_error)?
+            .into_iter()
+            .collect::<HashMap<String, i64>>())
+    }
+
+    async fn unit_to_id(
+        tx: &DatabaseTransaction,
+        measurements: &[MeasurementEntity],
+    ) -> Result<HashMap<String, i64>, GenerationError> {
+        Ok(UnitDbEntity::find()
+            .select_only()
+            .columns([UnitDbColumn::Unit, UnitDbColumn::Id])
+            .filter(UnitDbColumn::Unit.is_in(measurements.iter().map(|m| m.unit.to_string())))
+            .into_tuple::<(String, i64)>()
+            .all(tx)
+            .await
+            .map_err(Self::map_db_to_generation_error)?
+            .into_iter()
+            .collect::<HashMap<String, i64>>())
+    }
+}
 
 #[async_trait::async_trait]
 impl MeasurementRepositoryTrait<DatabaseTransaction> for MeasurementRepository {
@@ -18,19 +75,45 @@ impl MeasurementRepositoryTrait<DatabaseTransaction> for MeasurementRepository {
         tx: &DatabaseTransaction,
         measurements: Vec<MeasurementEntity>,
     ) -> Result<(), GenerationError> {
+        if measurements.is_empty() {
+            return Ok(());
+        }
+
+        let labels = Self::label_to_id(tx, &measurements).await?;
+        let systems = Self::system_to_id(tx, &measurements).await?;
+        let units = Self::unit_to_id(tx, &measurements).await?;
+
         let measurements = measurements
             .into_iter()
-            .map(|new| ActiveModel {
-                unit: ActiveValue::Set(new.unit.into()),
-                sub_system: ActiveValue::Set(new.system),
-                label: ActiveValue::Set(new.label),
-                value: ActiveValue::Set(new.value),
-                measured_at: ActiveValue::Set(new.monitored_at.into()),
-                ..Default::default()
+            .map(|new| {
+                let target_unit = new.unit.to_string();
+                Ok(MeasurementDbActiveModel {
+                    label_id: ActiveValue::Set(
+                        labels
+                            .get(&new.label)
+                            .copied()
+                            .ok_or(GenerationError::NotFound(new.label))?,
+                    ),
+                    unit_id: ActiveValue::Set(
+                        units
+                            .get(&target_unit)
+                            .copied()
+                            .ok_or_else(|| GenerationError::NotFound(target_unit))?,
+                    ),
+                    system_id: ActiveValue::Set(
+                        systems
+                            .get(&new.system)
+                            .copied()
+                            .ok_or(GenerationError::NotFound(new.system))?,
+                    ),
+                    value: ActiveValue::Set(new.value),
+                    measured_at: ActiveValue::Set(new.measured_at.into()),
+                    ..Default::default()
+                })
             })
-            .collect::<Vec<ActiveModel>>();
+            .collect::<Result<Vec<MeasurementDbActiveModel>, GenerationError>>()?;
 
-        let _ = Measurements::insert_many(measurements)
+        MeasurementDbEntity::insert_many(measurements)
             .exec(tx)
             .await
             .map_err(Self::map_db_to_generation_error)?;

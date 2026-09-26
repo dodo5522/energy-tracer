@@ -7,9 +7,9 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
-    pub sub_system: String,
-    pub label: String,
-    pub unit: String,
+    pub system_id: i64,
+    pub label_id: i64,
+    pub unit_id: i64,
     #[sea_orm(column_type = "Float")]
     pub value: f32,
     pub remark: String,
@@ -22,24 +22,24 @@ pub struct Model {
 pub enum Relation {
     #[sea_orm(
         belongs_to = "super::labels::Entity",
-        from = "Column::Label",
-        to = "super::labels::Column::Label",
+        from = "Column::LabelId",
+        to = "super::labels::Column::Id",
         on_update = "NoAction",
         on_delete = "Restrict"
     )]
     Labels,
     #[sea_orm(
         belongs_to = "super::systems::Entity",
-        from = "Column::SubSystem",
-        to = "super::systems::Column::System",
+        from = "Column::SystemId",
+        to = "super::systems::Column::Id",
         on_update = "NoAction",
         on_delete = "Restrict"
     )]
     Systems,
     #[sea_orm(
         belongs_to = "super::units::Entity",
-        from = "Column::Unit",
-        to = "super::units::Column::Unit",
+        from = "Column::UnitId",
+        to = "super::units::Column::Id",
         on_update = "NoAction",
         on_delete = "Restrict"
     )]

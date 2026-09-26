@@ -36,7 +36,7 @@ impl TryFrom<PostMeasurementRequest> for Vec<MeasurementEntity> {
                     unit: item.unit.try_into()?,
                     system: item.system,
                     label: item.label,
-                    monitored_at: input.monitored_at,
+                    measured_at: input.monitored_at,
                 })
             })
             .collect::<Result<Vec<MeasurementEntity>, Self::Error>>()

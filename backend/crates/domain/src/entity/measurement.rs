@@ -13,5 +13,5 @@ pub struct MeasurementEntity {
     /// 発電状況のラベル(e.g. バッテリ電圧, パネル出力電流, 風車回転数, ...)
     pub label: String,
     /// 発電状況の計測日時
-    pub monitored_at: DateTime<Utc>,
+    pub measured_at: DateTime<Utc>,
 }
