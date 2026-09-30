@@ -1,3 +1,4 @@
+use layer_domain::value_object::UnitError;
 use layer_use_case::interface::GenerationError;
 use sea_orm::DbErr;
 
@@ -14,7 +15,10 @@ pub trait ErrorMapperTrait {
         }
     }
 
-    fn map_invalid_unit(unit: String) -> GenerationError {
-        GenerationError::InvalidUnit(unit)
+    fn map_invalid_unit(e: UnitError) -> GenerationError {
+        match e {
+            UnitError::Invalid(unit) => GenerationError::InvalidUnit(unit),
+            _ => GenerationError::InvalidUnit(String::new()),
+        }
     }
 }

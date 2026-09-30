@@ -5,12 +5,15 @@ use crate::{
         measurements::{ActiveModel as MeasurementDbActiveModel, Entity as MeasurementDbEntity},
         systems::{Column as SystemDbColumn, Entity as SystemDbEntity},
         units::{Column as UnitDbColumn, Entity as UnitDbEntity},
+        view::measurements::{
+            Column as MeasurementViewDbColumn, Entity as MeasurementViewDbEntity,
+        },
     },
 };
 use chrono::{DateTime, Utc};
 use layer_domain::entity::MeasurementEntity;
 use layer_use_case::interface::{GenerationError, MeasurementRepositoryTrait};
-use sea_orm::{ActiveValue, DatabaseTransaction};
+use sea_orm::{ActiveValue, Condition, DatabaseTransaction};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QuerySelect};
 use std::collections::HashMap;
 
@@ -126,30 +129,43 @@ impl MeasurementRepositoryTrait<DatabaseTransaction> for MeasurementRepository {
         tx: &DatabaseTransaction,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-        system: String,
+        system: Option<String>,
         labels: Option<Vec<String>>,
     ) -> Result<Vec<MeasurementEntity>, GenerationError> {
-        // let h = Measurements::find_by_id::<i64>(id.into())
-        //     .one(tx)
-        //     .await
-        //     .map_err(Self::map_db_to_generation_error)?;
-        //
-        // if let Some(measurement) = h {
-        //     Ok(Some(MeasurementEntity {
-        //         value: measurement.value,
-        //         unit: measurement
-        //             .unit
-        //             .clone()
-        //             .try_into()
-        //             .map_err(|_| Self::map_invalid_unit(measurement.unit))?,
-        //         sub_system: measurement.sub_system,
-        //         label: measurement.label,
-        //         monitored_at: measurement.measured_at.into(),
-        //     }))
-        // } else {
-        //     Ok(None)
-        // }
-        Ok(vec![])
+        let mut statement = MeasurementViewDbEntity::find().filter(
+            Condition::all()
+                .add(MeasurementViewDbColumn::MeasuredAt.gte(from))
+                .add(MeasurementViewDbColumn::MeasuredAt.lte(to)),
+        );
+
+        if let Some(system) = system {
+            statement = statement.filter(MeasurementViewDbColumn::System.eq(system));
+        }
+        if let Some(labels) = labels {
+            statement = statement.filter(MeasurementViewDbColumn::Label.is_in(labels));
+        }
+
+        let measurements = statement
+            .all(tx)
+            .await
+            .map_err(Self::map_db_to_generation_error)?;
+
+        if measurements.is_empty() {
+            return Ok(vec![]);
+        }
+
+        Ok(measurements
+            .into_iter()
+            .map(|m| {
+                Ok(MeasurementEntity {
+                    value: m.value,
+                    unit: m.unit.try_into().map_err(Self::map_invalid_unit)?,
+                    system: m.system,
+                    label: m.label,
+                    measured_at: m.measured_at.into(),
+                })
+            })
+            .collect::<Result<Vec<MeasurementEntity>, _>>()?)
     }
 
     async fn delete(&self, tx: &DatabaseTransaction, id: i64) -> Result<(), GenerationError> {
