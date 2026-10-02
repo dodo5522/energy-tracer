@@ -1,5 +1,6 @@
 use crate::utilities::empty_string_as_none;
 use chrono::{DateTime, TimeDelta, Utc};
+use layer_domain::entity::MeasurementEntity;
 
 #[derive(Debug, serde::Deserialize, utoipa::IntoParams)]
 #[serde(default)]
@@ -35,20 +36,38 @@ impl Default for MeasurementFilter {
 
 #[derive(serde::Serialize, utoipa::ToSchema)]
 pub struct MeasurementItem {
+    /// 発電サブシステムの種類(e.g. 太陽光, 風力, ...)
+    pub system: String,
+    /// 発電状況のラベル(e.g. バッテリ電圧, パネル出力電流, 風車回転数, ...)
+    pub label: String,
     /// 物理量
     pub value: f32,
     /// 物理量の単位(e.g. V, A, Wh, ...)
     pub unit: String,
     /// 計測日時
-    pub monitored_at: DateTime<Utc>,
+    pub at: DateTime<Utc>,
 }
 
 #[derive(serde::Serialize, utoipa::ToSchema)]
-pub struct Response {
-    /// 発電サブシステムの種類(e.g. 太陽光, 風力, ...)
-    pub system: String,
-    /// 発電状況のラベル(e.g. バッテリ電圧, パネル出力電流, 風車回転数, ...)
-    pub label: String,
+#[serde(transparent)]
+pub struct Response(
     /// 物理量の値と計測日時
-    pub values: Vec<MeasurementItem>,
+    pub Vec<MeasurementItem>,
+);
+
+impl From<Vec<MeasurementEntity>> for Response {
+    fn from(entities: Vec<MeasurementEntity>) -> Self {
+        Self(
+            entities
+                .into_iter()
+                .map(|e| MeasurementItem {
+                    system: e.system,
+                    label: e.label,
+                    value: e.value,
+                    unit: e.unit.into(),
+                    at: e.measured_at,
+                })
+                .collect(),
+        )
+    }
 }

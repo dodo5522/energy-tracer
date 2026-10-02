@@ -5,13 +5,13 @@ use super::{
 use crate::{error_mapper::ErrorMapperTrait, errors::ErrorResponse, routers::RouterState};
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Query, State},
     http::StatusCode,
 };
 use layer_infra::{
     repository::measurement::MeasurementRepository, unit_of_work::UnitOfWorkFactory,
 };
-use layer_use_case::measurement::RecordMeasurementUseCase;
+use layer_use_case::measurement::{FetchMeasurementsUseCase, RecordMeasurementUseCase};
 
 struct ErrorMapper {}
 impl ErrorMapperTrait for ErrorMapper {}
@@ -68,16 +68,15 @@ pub async fn get_measurements(
 ) -> Result<(StatusCode, Json<GetResponse>), (StatusCode, Json<ErrorResponse>)> {
     let repo = MeasurementRepository {};
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = RecordMeasurementUseCase::new(repo, factory);
-    // let measurement = use_case
-    //     .get(id)
-    //     .await
-    //     .map_err(ErrorMapper::map_generation_error)?;
-
-    Err((
-        StatusCode::NOT_FOUND,
-        Json(ErrorResponse {
-            message: "Measurement record not found".to_string(),
-        }),
-    ))
+    let use_case = FetchMeasurementsUseCase::new(repo, factory);
+    let labels = if let Some(label) = filter.label {
+        Some(vec![label])
+    } else {
+        None
+    };
+    let measurements = use_case
+        .fetch(filter.from, filter.to, filter.system, labels)
+        .await
+        .map_err(ErrorMapper::map_generation_error)?;
+    Ok((StatusCode::OK, Json(measurements.into())))
 }
