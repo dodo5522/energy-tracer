@@ -1,6 +1,10 @@
-mod endpoints;
-mod get;
-mod post;
-mod put;
-
-pub use endpoints::*;
+mod delete_label;
+pub use delete_label::*;
+mod get_label;
+pub use get_label::*;
+mod get_labels;
+pub use get_labels::*;
+mod post_label;
+pub use post_label::*;
+mod put_label;
+pub use put_label::*;

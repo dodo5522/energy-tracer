@@ -1,6 +1,21 @@
-use crate::utilities::empty_string_as_none;
+use crate::{
+    error_mapper::ErrorMapperTrait, errors::ErrorResponse, routers::RouterState,
+    utilities::empty_string_as_none,
+};
+use axum::{
+    Json,
+    extract::{Query, State},
+};
 use chrono::{DateTime, TimeDelta, Utc};
+use http::StatusCode;
 use layer_domain::entity::MeasurementEntity;
+use layer_infra::{
+    repository::measurement::MeasurementRepository, unit_of_work::UnitOfWorkFactory,
+};
+use layer_use_case::measurement::FetchMeasurementsUseCase;
+
+struct ErrorMapper {}
+impl ErrorMapperTrait for ErrorMapper {}
 
 #[derive(Debug, serde::Deserialize, utoipa::IntoParams)]
 #[serde(default)]
@@ -35,7 +50,7 @@ impl Default for MeasurementFilter {
 }
 
 #[derive(serde::Serialize, utoipa::ToSchema)]
-pub struct MeasurementItem {
+pub struct MeasurementItemWithSystemAndLabel {
     /// 発電サブシステムの種類(e.g. 太陽光, 風力, ...)
     pub system: String,
     /// 発電状況のラベル(e.g. バッテリ電圧, パネル出力電流, 風車回転数, ...)
@@ -49,18 +64,19 @@ pub struct MeasurementItem {
 }
 
 #[derive(serde::Serialize, utoipa::ToSchema)]
+#[schema(value_type = Vec<MeasurementItemWithSystemAndLabel>)]
 #[serde(transparent)]
-pub struct Response(
+pub struct GetResponse(
     /// 物理量の値と計測日時
-    pub Vec<MeasurementItem>,
+    pub Vec<MeasurementItemWithSystemAndLabel>,
 );
 
-impl From<Vec<MeasurementEntity>> for Response {
+impl From<Vec<MeasurementEntity>> for GetResponse {
     fn from(entities: Vec<MeasurementEntity>) -> Self {
         Self(
             entities
                 .into_iter()
-                .map(|e| MeasurementItem {
+                .map(|e| MeasurementItemWithSystemAndLabel {
                     system: e.system,
                     label: e.label,
                     value: e.value,
@@ -70,4 +86,33 @@ impl From<Vec<MeasurementEntity>> for Response {
                 .collect(),
         )
     }
+}
+
+#[utoipa::path(
+    get,
+    tag = "Generation - Measurement",
+    description = "Get measurements with the specified parameters",
+    path = "/generation/measurements",
+    params(MeasurementFilter),
+    responses(
+        (status = 200, description = "OK", body = GetResponse),
+        (status = 404, description = "Not Found", body = ErrorResponse),
+        (status = 500, description = "Internal Error", body = ErrorResponse)
+    )
+)]
+pub async fn get_measurements(
+    State(state): State<RouterState>,
+    Query(filter): Query<MeasurementFilter>,
+) -> Result<(StatusCode, Json<GetResponse>), (StatusCode, Json<ErrorResponse>)> {
+    let labels = if let Some(label) = filter.label {
+        Some(vec![label])
+    } else {
+        None
+    };
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let measurements = FetchMeasurementsUseCase::new(MeasurementRepository {}, factory)
+        .fetch(filter.from, filter.to, filter.system, labels)
+        .await
+        .map_err(ErrorMapper::map_generation_error)?;
+    Ok((StatusCode::OK, Json(measurements.into())))
 }

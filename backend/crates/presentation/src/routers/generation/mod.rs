@@ -21,7 +21,7 @@ pub fn route() -> Router<RouterState> {
                 "/labels/{label}",
                 delete(label::delete_label)
                     .get(label::get_label)
-                    .put(label::update_label),
+                    .put(label::put_label),
             ),
         )
         .merge(Router::new().route(
@@ -33,7 +33,7 @@ pub fn route() -> Router<RouterState> {
                 "/systems/{system}",
                 delete(system::delete_system)
                     .get(system::get_system)
-                    .put(system::update_system),
+                    .put(system::put_system),
             ),
         )
         .merge(Router::new().route(
@@ -50,7 +50,7 @@ pub fn route() -> Router<RouterState> {
                 "/units/{unit}",
                 delete(unit::delete_unit)
                     .get(unit::get_unit)
-                    .put(unit::update_unit),
+                    .put(unit::put_unit),
             ),
         )
 }
