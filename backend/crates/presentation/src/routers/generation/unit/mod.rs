@@ -1,5 +1,10 @@
-mod endpoints;
-pub use endpoints::*;
-pub mod get;
-pub mod post;
-pub mod put;
+mod delete_unit;
+pub use delete_unit::*;
+mod get_unit;
+pub use get_unit::*;
+mod get_units;
+pub use get_units::*;
+mod post_unit;
+pub use post_unit::*;
+mod put_unit;
+pub use put_unit::*;

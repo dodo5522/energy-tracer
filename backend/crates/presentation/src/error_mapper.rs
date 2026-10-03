@@ -29,7 +29,7 @@ pub trait ErrorMapperTrait {
             GenerationError::NotFound(msg) => (StatusCode::NOT_FOUND, msg),
             GenerationError::NotImplemented(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
             GenerationError::Unknown(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
-            GenerationError::InvalidUnit(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
+            GenerationError::InvalidUnit(msg) => (StatusCode::BAD_REQUEST, msg),
             GenerationError::DbError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
         };
 
