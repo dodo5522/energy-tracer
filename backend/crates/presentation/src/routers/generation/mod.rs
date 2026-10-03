@@ -33,7 +33,7 @@ pub fn route() -> Router<RouterState> {
                 "/systems/{system}",
                 delete(system::delete_system)
                     .get(system::get_system)
-                    .put(system::update_system),
+                    .put(system::put_system),
             ),
         )
         .merge(Router::new().route(

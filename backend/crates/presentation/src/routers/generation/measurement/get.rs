@@ -49,13 +49,14 @@ pub struct MeasurementItem {
 }
 
 #[derive(serde::Serialize, utoipa::ToSchema)]
+#[schema(value_type = Vec<MeasurementItem>)]
 #[serde(transparent)]
-pub struct Response(
+pub struct GetResponse(
     /// 物理量の値と計測日時
     pub Vec<MeasurementItem>,
 );
 
-impl From<Vec<MeasurementEntity>> for Response {
+impl From<Vec<MeasurementEntity>> for GetResponse {
     fn from(entities: Vec<MeasurementEntity>) -> Self {
         Self(
             entities

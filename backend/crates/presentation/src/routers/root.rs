@@ -1,5 +1,5 @@
 use crate::routers::{RouterState, generation, health};
-use axum::{Router, extract::State};
+use axum::Router;
 use http::{HeaderValue, Method};
 use sea_orm::DatabaseConnection;
 use std::io::{Error, ErrorKind};
@@ -50,7 +50,7 @@ pub fn route(allowed_origins: Vec<String>, db: DatabaseConnection) -> Result<Rou
     generation::system::get_systems,
     generation::system::get_measurements_under_system,
     generation::system::get_measurements_under_system_and_label,
-    generation::system::update_system,
+    generation::system::put_system,
     generation::unit::delete_unit,
     generation::unit::post_unit,
     generation::unit::get_unit,

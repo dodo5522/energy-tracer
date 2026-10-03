@@ -1,5 +1,5 @@
 use super::{
-    get::{MeasurementFilter, Response as GetResponse},
+    get::{GetResponse, MeasurementFilter},
     post::PostMeasurementRequest,
 };
 use crate::{error_mapper::ErrorMapperTrait, errors::ErrorResponse, routers::RouterState};
