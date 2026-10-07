@@ -7,6 +7,7 @@ use axum::{
 };
 use chrono::{DateTime, TimeDelta, Utc};
 use http::StatusCode;
+use layer_domain::entity::MeasurementEntity;
 use layer_infra::{
     repository::measurement::MeasurementRepository, unit_of_work::UnitOfWorkFactory,
 };
@@ -51,11 +52,30 @@ pub struct MeasurementItem {
     pub at: DateTime<Utc>,
 }
 
+impl From<MeasurementEntity> for MeasurementItem {
+    fn from(entity: MeasurementEntity) -> Self {
+        Self {
+            label: entity.label,
+            value: entity.value,
+            unit: entity.unit.into(),
+            at: entity.measured_at,
+        }
+    }
+}
+
 #[derive(serde::Serialize, utoipa::ToSchema)]
 #[serde(transparent)]
 pub struct Response {
     /// 物理量の値と計測日時
     pub values: Vec<MeasurementItem>,
+}
+
+impl From<Vec<MeasurementEntity>> for Response {
+    fn from(entities: Vec<MeasurementEntity>) -> Self {
+        Self {
+            values: entities.into_iter().map(MeasurementItem::from).collect(),
+        }
+    }
 }
 
 #[utoipa::path(
@@ -76,17 +96,9 @@ pub async fn get_measurements_under_system(
     Path(path): Path<MeasurementPathFilter>,
 ) -> Result<(StatusCode, Json<Response>), (StatusCode, Json<ErrorResponse>)> {
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let measurement = FetchMeasurementsUseCase::new(MeasurementRepository {}, factory)
+    let measurements = FetchMeasurementsUseCase::new(MeasurementRepository {}, factory)
         .fetch(filter.from, filter.to, Some(path.system), None)
         .await
         .map_err(ErrorMapper::map_generation_error)?;
-
-    // TODO
-
-    Err((
-        StatusCode::OK,
-        Json(ErrorResponse {
-            message: String::new(),
-        }),
-    ))
+    Ok((StatusCode::OK, Json(measurements.into())))
 }
