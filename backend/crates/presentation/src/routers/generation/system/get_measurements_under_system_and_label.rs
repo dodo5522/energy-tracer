@@ -1,3 +1,4 @@
+use crate::error_mapper::ErrorMapperTrait;
 use crate::{errors::ErrorResponse, routers::RouterState};
 use axum::{
     Json,
@@ -5,9 +6,14 @@ use axum::{
 };
 use chrono::{DateTime, Utc};
 use http::StatusCode;
+use layer_domain::entity::MeasurementEntity;
 use layer_infra::{
     repository::measurement::MeasurementRepository, unit_of_work::UnitOfWorkFactory,
 };
+use layer_use_case::measurement::FetchMeasurementsUseCase;
+
+struct ErrorMapper {}
+impl ErrorMapperTrait for ErrorMapper {}
 
 #[derive(Debug, serde::Deserialize, utoipa::IntoParams)]
 pub struct MeasurementRangeFilter {
@@ -18,7 +24,6 @@ pub struct MeasurementRangeFilter {
     #[param(example = "2026-06-26T21:34:56Z", required = false)]
     to: DateTime<Utc>,
 }
-use layer_use_case::measurement::RecordMeasurementUseCase;
 
 #[derive(Debug, serde::Deserialize, utoipa::IntoParams)]
 pub struct MeasurementPathFilter {
@@ -40,14 +45,32 @@ pub struct MeasurementItem {
     pub at: DateTime<Utc>,
 }
 
+impl From<MeasurementEntity> for MeasurementItem {
+    fn from(entity: MeasurementEntity) -> Self {
+        Self {
+            value: entity.value,
+            unit: entity.unit.into(),
+            at: entity.measured_at,
+        }
+    }
+}
+
 #[derive(serde::Serialize, utoipa::ToSchema)]
+#[serde(transparent)]
 pub struct Response {
-    /// 発電サブシステムの種類(e.g. 太陽光, 風力, ...)
-    pub system: Option<String>,
-    /// 発電状況のラベル(e.g. バッテリ電圧, パネル出力電流, 風車回転数, ...)
-    pub label: Option<String>,
     /// 物理量の値と計測日時
     pub values: Vec<MeasurementItem>,
+}
+
+impl From<Vec<MeasurementEntity>> for Response {
+    fn from(measurements: Vec<MeasurementEntity>) -> Self {
+        Self {
+            values: measurements
+                .into_iter()
+                .map(MeasurementItem::from)
+                .collect(),
+        }
+    }
 }
 
 #[utoipa::path(
@@ -68,17 +91,15 @@ pub async fn get_measurements_under_system_and_label(
     Path(path): Path<MeasurementPathFilter>,
 ) -> Result<(StatusCode, Json<Response>), (StatusCode, Json<ErrorResponse>)> {
     let factory = UnitOfWorkFactory::new(state.db.clone());
-    let use_case = RecordMeasurementUseCase::new(MeasurementRepository {}, factory);
-    // TODO
-    // let measurement = use_case
-    //     .get(id)
-    //     .await
-    //     .map_err(ErrorMapper::map_generation_error)?;
+    let measurements = FetchMeasurementsUseCase::new(MeasurementRepository {}, factory)
+        .fetch(
+            query.from,
+            query.to,
+            Some(path.system),
+            Some(vec![path.label]),
+        )
+        .await
+        .map_err(ErrorMapper::map_generation_error)?;
 
-    Err((
-        StatusCode::NOT_FOUND,
-        Json(ErrorResponse {
-            message: "Measurement record not found".to_string(),
-        }),
-    ))
+    Ok((StatusCode::OK, Json(measurements.into())))
 }
