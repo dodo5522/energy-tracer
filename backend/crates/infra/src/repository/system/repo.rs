@@ -69,7 +69,7 @@ impl SubSystemRepositoryTrait<DatabaseTransaction> for SubSystemRepository {
             let result = Systems::update(ActiveModel {
                 id: found.id.into_active_value(),
                 system: found.system.into_active_value(),
-                remark: found.remark.into_active_value(),
+                remark: system.remark.to_owned().into_active_value(),
                 ..Default::default()
             })
             .exec(tx)

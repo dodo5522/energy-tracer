@@ -67,7 +67,7 @@ impl LabelRepositoryTrait<DatabaseTransaction> for LabelRepository {
             let result = Labels::update(ActiveModel {
                 id: found.id.into_active_value(),
                 label: found.label.into_active_value(),
-                remark: found.remark.into_active_value(),
+                remark: label.remark.to_owned().into_active_value(),
                 ..Default::default()
             })
             .exec(tx)

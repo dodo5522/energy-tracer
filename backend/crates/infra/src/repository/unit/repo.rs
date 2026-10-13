@@ -67,7 +67,7 @@ impl UnitRepositoryTrait<DatabaseTransaction> for UnitRepository {
             let result = Units::update(ActiveModel {
                 id: found.id.into_active_value(),
                 unit: found.unit.into_active_value(),
-                remark: found.remark.into_active_value(),
+                remark: unit.remark.to_owned().into_active_value(),
                 ..Default::default()
             })
             .exec(tx)
