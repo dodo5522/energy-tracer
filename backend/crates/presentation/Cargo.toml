@@ -4,17 +4,20 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-anyhow.workspace = true
 axum.workspace = true
 chrono.workspace = true
-http = "1.4.0"
+http.workspace = true
 layer-domain.workspace = true
 layer-infra.workspace = true
 layer-use-case.workspace = true
 sea-orm.workspace = true
 serde.workspace = true
-tower-http = "0.6.8"
-tower-http-cors-config = "0.1.3"
+tower-http.workspace = true
+tower-http-cors-config.workspace = true
 utoipa.workspace = true
 utoipa-swagger-ui.workspace = true
 utoipa-redoc.workspace = true
+
+[dev-dependencies]
+mockall.workspace = true
+rstest.workspace = true

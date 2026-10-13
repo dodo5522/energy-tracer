@@ -1859,6 +1859,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "layer-infra",
+ "mockall",
+ "rstest",
  "sea-orm-migration",
  "tokio",
 ]
@@ -1926,9 +1928,9 @@ dependencies = [
 name = "layer-domain"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "chrono",
- "chrono-tz",
+ "mockall",
+ "rstest",
 ]
 
 [[package]]
@@ -1942,20 +1944,20 @@ dependencies = [
  "mockall",
  "rstest",
  "sea-orm 2.0.4",
- "tokio",
 ]
 
 [[package]]
 name = "layer-presentation"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "axum",
  "chrono",
  "http",
  "layer-domain",
  "layer-infra",
  "layer-use-case",
+ "mockall",
+ "rstest",
  "sea-orm 2.0.4",
  "serde",
  "tower-http",
@@ -1972,7 +1974,9 @@ dependencies = [
  "async-trait",
  "chrono",
  "layer-domain",
+ "mockall",
  "polars",
+ "rstest",
 ]
 
 [[package]]

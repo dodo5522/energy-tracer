@@ -1,5 +1,7 @@
 # Running Migrator CLI
 
+Do the following instructions after running `cargo install sea-orm-cli`.
+
 - Generate a new migration file
     ```sh
     sea-orm-cli migrate -d ./crates/infra-db-migration generate 'create junction table for sites and devices'
