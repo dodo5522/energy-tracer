@@ -22,6 +22,7 @@ mod put_system;
 pub use put_system::*;
 
 #[derive(Debug, serde::Deserialize, utoipa::IntoParams)]
+#[serde(default)]
 pub struct MeasurementRangeFilter {
     /// 計測開始日時 (省略時は現在時刻の1時間前)
     #[param(example = "2026-06-26T11:34:56Z", required = false)]

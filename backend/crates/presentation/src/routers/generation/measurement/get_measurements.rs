@@ -39,7 +39,7 @@ pub struct MeasurementFilter {
 impl Default for MeasurementFilter {
     fn default() -> Self {
         let to = Utc::now();
-        let from = to - TimeDelta::hours(-1);
+        let from = to - TimeDelta::hours(1);
         Self {
             to,
             from,
