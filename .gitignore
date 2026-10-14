@@ -1,6 +1,5 @@
 .idea
 .serena
 target
-backend/Cargo.lock
 .aider*
 .env

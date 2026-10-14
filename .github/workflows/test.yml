@@ -16,7 +16,7 @@ jobs:
       - name: cargo clippy
         run: |
           cd backend
-          cargo clippy --all-targets --all-features -- -W warnings
+          cargo clippy --locked --all-targets --all-features -- -W warnings
 
   test:
     runs-on: ubuntu-latest
