@@ -20,9 +20,39 @@ impl MigrationTrait for Migration {
                     .table((Measurement::Schema, Measurement::Table))
                     .if_not_exists()
                     .col(big_integer(Measurement::Id).primary_key().auto_increment())
-                    .col(string(Measurement::SubSystem).not_null())
-                    .col(string(Measurement::Label).not_null())
-                    .col(string(Measurement::Unit).not_null())
+                    .col(big_integer(Measurement::SystemId).not_null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-measurements-system")
+                            .from(
+                                (Measurement::Schema, Measurement::Table),
+                                Measurement::SystemId,
+                            )
+                            .to((System::Schema, System::Table), System::Id)
+                            .on_delete(ForeignKeyAction::Restrict),
+                    )
+                    .col(big_integer(Measurement::LabelId).not_null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-measurements-label")
+                            .from(
+                                (Measurement::Schema, Measurement::Table),
+                                Measurement::LabelId,
+                            )
+                            .to((Label::Schema, Label::Table), Label::Id)
+                            .on_delete(ForeignKeyAction::Restrict),
+                    )
+                    .col(big_integer(Measurement::UnitId).not_null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-measurements-unit")
+                            .from(
+                                (Measurement::Schema, Measurement::Table),
+                                Measurement::UnitId,
+                            )
+                            .to((Unit::Schema, Unit::Table), Unit::Id)
+                            .on_delete(ForeignKeyAction::Restrict),
+                    )
                     .col(float(Measurement::Value).not_null())
                     .col(string(Measurement::Remark).not_null().default(""))
                     .col(
@@ -40,33 +70,6 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .default(Expr::current_timestamp()),
                     )
-                    .foreign_key(
-                        ForeignKey::create()
-                            .name("fk-measurements-group")
-                            .from(
-                                (Measurement::Schema, Measurement::Table),
-                                Measurement::SubSystem,
-                            )
-                            .to((System::Schema, System::Table), System::System)
-                            .on_delete(ForeignKeyAction::Restrict),
-                    )
-                    .foreign_key(
-                        ForeignKey::create()
-                            .name("fk-measurements-label")
-                            .from(
-                                (Measurement::Schema, Measurement::Table),
-                                Measurement::Label,
-                            )
-                            .to((Label::Schema, Label::Table), Label::Label)
-                            .on_delete(ForeignKeyAction::Restrict),
-                    )
-                    .foreign_key(
-                        ForeignKey::create()
-                            .name("fk-measurements-unit")
-                            .from((Measurement::Schema, Measurement::Table), Measurement::Unit)
-                            .to((Unit::Schema, Unit::Table), Unit::Unit)
-                            .on_delete(ForeignKeyAction::Restrict),
-                    )
                     .to_owned(),
             )
             .await?;
@@ -75,9 +78,9 @@ impl MigrationTrait for Migration {
             .execute(Statement::from_string(
                 DbBackend::Postgres,
                 format!(
-                    "COMMENT ON COLUMN {}.{} IS 'グループ';",
+                    "COMMENT ON COLUMN {}.{} IS 'システム';",
                     table,
-                    Measurement::SubSystem.to_string()
+                    Measurement::SystemId.to_string()
                 ),
             ))
             .await?;
@@ -88,7 +91,7 @@ impl MigrationTrait for Migration {
                 format!(
                     "COMMENT ON COLUMN {}.{} IS 'ラベル';",
                     table,
-                    Measurement::Label.to_string()
+                    Measurement::LabelId.to_string()
                 ),
             ))
             .await?;
@@ -99,7 +102,7 @@ impl MigrationTrait for Migration {
                 format!(
                     "COMMENT ON COLUMN {}.{} IS '単位';",
                     table,
-                    Measurement::Unit.to_string()
+                    Measurement::UnitId.to_string()
                 ),
             ))
             .await?;

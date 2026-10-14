@@ -36,6 +36,6 @@ impl<Tx, U: UnitOfWorkTrait<Tx>, F: UnitOfWorkFactoryTrait<Tx, U>, R: LabelRepos
 
     pub async fn fetch(self, label: Option<&String>) -> Result<Vec<LabelEntity>, GenerationError> {
         let uow = self.factory.begin().await.map_err(Self::map_db_err)?;
-        Ok(self.repo.find(uow.ref_tx(), label).await?)
+        self.repo.find(uow.ref_tx(), label).await
     }
 }

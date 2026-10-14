@@ -22,9 +22,7 @@ impl Unit {
             Err(UnitError::Empty)
         } else if name.trim().is_empty() {
             Err(UnitError::Blank)
-        } else if name.trim().chars().all(|c| !c.is_alphanumeric()) {
-            Err(UnitError::Invalid(name.into()))
-        } else if name.trim().chars().all(|c| c.is_numeric()) {
+        } else if name.trim().chars().all(|c| c.is_ascii_digit()) {
             Err(UnitError::Invalid(name.into()))
         } else {
             Ok(Self(name.into()))

@@ -1,4 +1,4 @@
-mod db;
-pub use db::*;
+mod connection;
+pub use connection::*;
 mod option;
 pub use option::*;

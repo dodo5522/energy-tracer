@@ -1,8 +1,8 @@
 use crate::routers::{RouterState, generation, health};
-use axum::{Router, extract::State};
+use axum::Router;
 use http::{HeaderValue, Method};
 use sea_orm::DatabaseConnection;
-use std::io::{Error, ErrorKind};
+use std::io::Error;
 use tower_http::cors::{Any, CorsLayer};
 use utoipa::OpenApi;
 use utoipa_redoc::{Redoc, Servable};
@@ -11,11 +11,7 @@ use utoipa_swagger_ui::SwaggerUi;
 fn cors(allowed_origins: Vec<String>) -> Result<CorsLayer, Error> {
     let origins = allowed_origins
         .into_iter()
-        .map(|origin| {
-            origin
-                .parse::<HeaderValue>()
-                .map_err(|e| Error::new(ErrorKind::Other, e))
-        })
+        .map(|origin| origin.parse::<HeaderValue>().map_err(Error::other))
         .collect::<Result<Vec<HeaderValue>, _>>()?;
 
     Ok(CorsLayer::new()
@@ -43,18 +39,18 @@ pub fn route(allowed_origins: Vec<String>, db: DatabaseConnection) -> Result<Rou
     generation::label::post_label,
     generation::label::get_label,
     generation::label::get_labels,
-    generation::label::update_label,
+    generation::label::put_label,
     generation::system::delete_system,
     generation::system::post_system,
     generation::system::get_system,
     generation::system::get_systems,
     generation::system::get_measurements_under_system,
     generation::system::get_measurements_under_system_and_label,
-    generation::system::update_system,
+    generation::system::put_system,
     generation::unit::delete_unit,
     generation::unit::post_unit,
     generation::unit::get_unit,
     generation::unit::get_units,
-    generation::unit::update_unit,
+    generation::unit::put_unit,
 ))]
 pub(crate) struct ApiDoc {}
