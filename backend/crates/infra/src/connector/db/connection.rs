@@ -58,6 +58,6 @@ impl DatabaseConnector {
         } else {
             Database::connect(url).await
         };
-        Ok(connection.map_err(|e| InfraError::DbFailed(e))?)
+        connection.map_err(InfraError::DbFailed)
     }
 }

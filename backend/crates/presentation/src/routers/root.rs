@@ -2,7 +2,7 @@ use crate::routers::{RouterState, generation, health};
 use axum::Router;
 use http::{HeaderValue, Method};
 use sea_orm::DatabaseConnection;
-use std::io::{Error, ErrorKind};
+use std::io::Error;
 use tower_http::cors::{Any, CorsLayer};
 use utoipa::OpenApi;
 use utoipa_redoc::{Redoc, Servable};
@@ -11,11 +11,7 @@ use utoipa_swagger_ui::SwaggerUi;
 fn cors(allowed_origins: Vec<String>) -> Result<CorsLayer, Error> {
     let origins = allowed_origins
         .into_iter()
-        .map(|origin| {
-            origin
-                .parse::<HeaderValue>()
-                .map_err(|e| Error::new(ErrorKind::Other, e))
-        })
+        .map(|origin| origin.parse::<HeaderValue>().map_err(Error::other))
         .collect::<Result<Vec<HeaderValue>, _>>()?;
 
     Ok(CorsLayer::new()

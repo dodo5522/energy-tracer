@@ -36,7 +36,7 @@ impl<Tx, U: UnitOfWorkTrait<Tx>, F: UnitOfWorkFactoryTrait<Tx, U>, R: LabelRepos
 
     pub async fn update(self, input: LabelEntity) -> Result<(), GenerationError> {
         let uow = self.factory.begin().await.map_err(Self::map_db_err)?;
-        if let Err(e) = self.repo.update(uow.ref_tx(), &input.into()).await {
+        if let Err(e) = self.repo.update(uow.ref_tx(), &input).await {
             uow.rollback().await.map_err(Self::map_db_err)?;
             Err(e)
         } else {

@@ -101,7 +101,7 @@ impl MeasurementRepositoryTrait<DatabaseTransaction> for MeasurementRepository {
                         units
                             .get(&target_unit)
                             .copied()
-                            .ok_or_else(|| GenerationError::NotFound(target_unit))?,
+                            .ok_or(GenerationError::NotFound(target_unit))?,
                     ),
                     system_id: ActiveValue::Set(
                         systems
@@ -168,7 +168,7 @@ impl MeasurementRepositoryTrait<DatabaseTransaction> for MeasurementRepository {
             .collect::<Result<Vec<MeasurementEntity>, _>>()?)
     }
 
-    async fn delete(&self, tx: &DatabaseTransaction, id: i64) -> Result<(), GenerationError> {
+    async fn delete(&self, _tx: &DatabaseTransaction, _id: i64) -> Result<(), GenerationError> {
         Err(GenerationError::NotImplemented(
             "HistoryRepository::delete()".to_string(),
         ))

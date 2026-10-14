@@ -104,11 +104,7 @@ pub async fn get_measurements(
     State(state): State<RouterState>,
     Query(filter): Query<MeasurementFilter>,
 ) -> Result<(StatusCode, Json<GetResponse>), (StatusCode, Json<ErrorResponse>)> {
-    let labels = if let Some(label) = filter.label {
-        Some(vec![label])
-    } else {
-        None
-    };
+    let labels = filter.label.map(|label| vec![label]);
     let factory = UnitOfWorkFactory::new(state.db.clone());
     let measurements = FetchMeasurementsUseCase::new(MeasurementRepository {}, factory)
         .fetch(filter.from, filter.to, filter.system, labels)

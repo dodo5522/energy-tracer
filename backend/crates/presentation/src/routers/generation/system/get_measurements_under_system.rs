@@ -4,7 +4,7 @@ use axum::{
     Json,
     extract::{Path, Query, State},
 };
-use chrono::{DateTime, TimeDelta, Utc};
+use chrono::{DateTime, Utc};
 use http::StatusCode;
 use layer_domain::entity::MeasurementEntity;
 use layer_infra::{

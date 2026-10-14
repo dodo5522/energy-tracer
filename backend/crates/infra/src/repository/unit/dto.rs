@@ -33,7 +33,7 @@ impl TryFrom<Model> for UnitEntity {
                 .to_owned()
                 .try_into()
                 .map_err(|_| GenerationError::InvalidUnit(unit))?,
-            remark: m.remark.into(),
+            remark: m.remark,
         })
     }
 }

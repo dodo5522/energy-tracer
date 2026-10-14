@@ -39,6 +39,6 @@ impl<Tx, U: UnitOfWorkTrait<Tx>, F: UnitOfWorkFactoryTrait<Tx, U>, R: SubSystemR
         system: Option<&String>,
     ) -> Result<Vec<SystemEntity>, GenerationError> {
         let uow = self.factory.begin().await.map_err(Self::map_db_err)?;
-        Ok(self.repo.find(uow.ref_tx(), system).await?)
+        self.repo.find(uow.ref_tx(), system).await
     }
 }

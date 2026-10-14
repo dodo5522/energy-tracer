@@ -60,9 +60,8 @@ impl<
         labels: Option<Vec<String>>,
     ) -> Result<Vec<MeasurementEntity>, GenerationError> {
         let uow = self.factory.begin().await.map_err(Self::map_db_err)?;
-        Ok(self
-            .repo
+        self.repo
             .fetch(uow.ref_tx(), from, to, system, labels)
-            .await?)
+            .await
     }
 }

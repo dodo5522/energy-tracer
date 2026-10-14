@@ -50,6 +50,6 @@ pub async fn get_labels(
         .fetch(None::<&String>)
         .await
         .map_err(ErrorMapper::map_generation_error)?;
-    let items = labels.into_iter().map(|e| LabelItem::from(e)).collect();
+    let items = labels.into_iter().map(LabelItem::from).collect();
     Ok((StatusCode::OK, Json(items)))
 }

@@ -36,7 +36,7 @@ impl<Tx, U: UnitOfWorkTrait<Tx>, F: UnitOfWorkFactoryTrait<Tx, U>, R: SubSystemR
 
     pub async fn update(self, input: &SystemEntity) -> Result<(), GenerationError> {
         let uow = self.factory.begin().await.map_err(Self::map_db_err)?;
-        if let Err(e) = self.repo.update(uow.ref_tx(), &input).await {
+        if let Err(e) = self.repo.update(uow.ref_tx(), input).await {
             uow.rollback().await.map_err(Self::map_db_err)?;
             Err(e)
         } else {
