@@ -32,7 +32,7 @@ impl MigrationTrait for Migration {
             .await?;
         manager
             .get_connection()
-            .execute(Statement::from_string(
+            .execute_raw(Statement::from_string(
                 DbBackend::Postgres,
                 format!(
                     "COMMENT ON COLUMN {}.{} IS 'システム (e.g. Array, Battery, ...)';",

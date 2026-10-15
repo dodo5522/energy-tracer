@@ -11,19 +11,14 @@ pub enum System {
 }
 
 impl Iden for System {
-    fn unquoted(&self, s: &mut dyn std::fmt::Write) {
-        write!(
-            s,
-            "{}",
-            match self {
-                Self::Schema => GENERATION,
-                Self::Table => "systems",
-                Self::Id => "id",
-                Self::System => "system",
-                Self::Remark => "remark",
-                Self::CreatedAt => "created_at",
-            }
-        )
-        .unwrap();
+    fn unquoted(&self) -> &str {
+        match self {
+            Self::Schema => GENERATION,
+            Self::Table => "systems",
+            Self::Id => "id",
+            Self::System => "system",
+            Self::Remark => "remark",
+            Self::CreatedAt => "created_at",
+        }
     }
 }

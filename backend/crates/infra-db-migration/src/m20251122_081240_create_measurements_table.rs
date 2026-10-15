@@ -75,7 +75,7 @@ impl MigrationTrait for Migration {
             .await?;
         manager
             .get_connection()
-            .execute(Statement::from_string(
+            .execute_raw(Statement::from_string(
                 DbBackend::Postgres,
                 format!(
                     "COMMENT ON COLUMN {}.{} IS 'システム';",
@@ -86,7 +86,7 @@ impl MigrationTrait for Migration {
             .await?;
         manager
             .get_connection()
-            .execute(Statement::from_string(
+            .execute_raw(Statement::from_string(
                 DbBackend::Postgres,
                 format!(
                     "COMMENT ON COLUMN {}.{} IS 'ラベル';",
@@ -97,7 +97,7 @@ impl MigrationTrait for Migration {
             .await?;
         manager
             .get_connection()
-            .execute(Statement::from_string(
+            .execute_raw(Statement::from_string(
                 DbBackend::Postgres,
                 format!(
                     "COMMENT ON COLUMN {}.{} IS '単位';",
@@ -108,7 +108,7 @@ impl MigrationTrait for Migration {
             .await?;
         manager
             .get_connection()
-            .execute(Statement::from_string(
+            .execute_raw(Statement::from_string(
                 DbBackend::Postgres,
                 format!(
                     "COMMENT ON COLUMN {}.{} IS '値';",
@@ -119,7 +119,7 @@ impl MigrationTrait for Migration {
             .await?;
         manager
             .get_connection()
-            .execute(Statement::from_string(
+            .execute_raw(Statement::from_string(
                 DbBackend::Postgres,
                 format!(
                     "COMMENT ON COLUMN {}.{} IS '観測日時';",
@@ -131,7 +131,7 @@ impl MigrationTrait for Migration {
 
         manager
             .get_connection()
-            .execute(Statement::from_string(
+            .execute_raw(Statement::from_string(
                 DbBackend::Postgres,
                 r#"
                 CREATE TRIGGER updated_at_setter

@@ -28,7 +28,7 @@ impl MigrationTrait for Migration {
         let table = format!("{}.{}", Label::Schema.to_string(), Label::Table.to_string());
         manager
             .get_connection()
-            .execute(Statement::from_string(
+            .execute_raw(Statement::from_string(
                 DbBackend::Postgres,
                 format!(
                     "COMMENT ON COLUMN {}.{} IS 'ラベル (e.g. Array Voltage, ...)';",
