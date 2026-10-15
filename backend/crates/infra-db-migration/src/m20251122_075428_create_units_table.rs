@@ -28,7 +28,7 @@ impl MigrationTrait for Migration {
         let table = format!("{}.{}", Unit::Schema.to_string(), Unit::Table.to_string());
         manager
             .get_connection()
-            .execute(Statement::from_string(
+            .execute_raw(Statement::from_string(
                 DbBackend::Postgres,
                 format!(
                     "COMMENT ON COLUMN {}.{} IS '単位 (e.g. kWh, V, A, ...)';",
