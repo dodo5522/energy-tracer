@@ -6,6 +6,10 @@ COPY ./Cargo.toml ./
 COPY ./rust-toolchain.toml ./
 RUN cargo build --release
 
-FROM debian:trixie-20251020-slim
+FROM debian:trixie-slim
+RUN --mount=type=cache,target=/var/lib/apt/lists/ \
+    --mount=type=cache,target=/var/cache/apt/ \
+    apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates
 COPY --from=builder /tmp/backend/target/release/energy-tracer /usr/local/bin/energy-tracer
 CMD ["energy-tracer"]
