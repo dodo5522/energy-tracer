@@ -39,7 +39,7 @@ cd backend
 cargo run
 ```
 
-`BIND_ADDR` / `BIND_PORT` はリポジトリルートの `.env` で設定します。
+`BIND_ADDR` / `BIND_PORT` はリポジトリルートの `backend/.env` で設定します。
 
 ## テスト・チェック
 

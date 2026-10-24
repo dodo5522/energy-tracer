@@ -1,0 +1,10 @@
+{
+  "name": "dev container",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "backend",
+  "workspaceFolder": "/work",
+  "remoteUser": "root",
+  "features": {},
+  "postCreateCommand": "",
+  "postStartCommand": "mise install --system"
+}

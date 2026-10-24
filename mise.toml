@@ -1,0 +1,8 @@
+[tools]
+claude = "latest"
+codex = "latest"
+node = "24.22.1"
+pre-commit = "latest"
+rust = "1.96.1"
+terraform = "1.17"
+uv = "latest"
