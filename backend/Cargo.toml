@@ -16,7 +16,6 @@ anyhow = "1.0"
 async-trait = "0.1.89"
 axum = "0.8.8"
 chrono = { version = "0.4.42", features = ["serde"] }
-chrono-tz = "0.10.4"
 http = "1.5.0"
 layer-domain = { path = "./crates/domain" }
 layer-infra = { path = "./crates/infra" }
@@ -28,17 +27,15 @@ rstest = "0.26"
 sea-orm = { version = "2.0", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros", "with-chrono"] }
 sea-orm-migration = { version = "2.0", features = ["runtime-tokio-rustls", "sqlx-postgres"] }
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
 tokio = { version = "1.53", features = ["rt-multi-thread", "macros"] }
 tower = { version = "0.5", features = ["util"] }
 tower-http = "0.6"
 tower-http-cors-config = "0.1"
 tracing = "0.1"
 tracing-subscriber = "0.3"
-utoipa = { version = "5.4", features = ["axum_extras", "chrono"] }
-utoipa-swagger-ui = { version = "9.0", features = ["axum", "debug-embed"] }
-utoipa-redoc = { version = "6.0", features = ["axum"] }
-uuid = { version = "1", features = ["serde", "v4"] }
+utoipa = { version = "6.0", features = ["axum_extras", "chrono"] }
+utoipa-swagger-ui = { version = "10.0", features = ["axum"] }
+utoipa-redoc = { version = "7.0", features = ["axum"] }
 
 [dependencies]
 anyhow.workspace = true
@@ -46,7 +43,6 @@ axum.workspace = true
 layer-infra.workspace = true
 layer-presentation.workspace = true
 tokio.workspace = true
-tracing.workspace = true
 tracing-subscriber.workspace = true
 
 [features]
