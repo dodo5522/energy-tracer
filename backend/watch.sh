@@ -4,8 +4,8 @@ set -euo pipefail
 cd $(dirname $0)
 
 export $(grep -v '^#' ./.env | xargs)
-mise exec -- cargo run --package infra-db-migration -- up
-mise exec -- cargo-watch \
+cargo run --package infra-db-migration -- up
+cargo-watch \
   --delay 1 \
   --watch Cargo.toml \
   --watch src \
