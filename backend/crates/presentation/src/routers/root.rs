@@ -54,3 +54,45 @@ pub fn route(allowed_origins: Vec<String>, db: DatabaseConnection) -> Result<Rou
     generation::unit::put_unit,
 ))]
 pub(crate) struct ApiDoc {}
+
+#[cfg(test)]
+mod tests {
+    use super::route;
+    use axum::{body::Body, http::Request};
+    use sea_orm::DatabaseConnection;
+    use tower::ServiceExt;
+
+    #[tokio::test]
+    async fn swagger_ui_root_with_trailing_slash_returns_ok() {
+        let app = route(vec![], DatabaseConnection::default()).expect("router should build");
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/docs/swagger/")
+                    .body(Body::empty())
+                    .expect("request should build"),
+            )
+            .await
+            .expect("router should respond");
+
+        assert_eq!(response.status(), http::StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn swagger_ui_static_asset_returns_ok() {
+        let app = route(vec![], DatabaseConnection::default()).expect("router should build");
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/docs/swagger/swagger-ui.css")
+                    .body(Body::empty())
+                    .expect("request should build"),
+            )
+            .await
+            .expect("router should respond");
+
+        assert_eq!(response.status(), http::StatusCode::OK);
+    }
+}
