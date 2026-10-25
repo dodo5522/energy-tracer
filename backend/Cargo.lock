@@ -1943,6 +1943,8 @@ dependencies = [
  "rstest",
  "sea-orm",
  "serde",
+ "tokio",
+ "tower",
  "tower-http",
  "tower-http-cors-config",
  "utoipa",
