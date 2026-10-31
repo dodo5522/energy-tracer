@@ -33,7 +33,8 @@ RUN --mount=type=cache,target=$SCCACHE_DIR,sharing=locked \
     && cargo chef cook --release --recipe-path $RECIPE_FILE
 
 COPY ./backend/ /work/backend/
-RUN cd backend \
+RUN --mount=type=cache,target=$SCCACHE_DIR,sharing=locked \
+    cd backend \
     && cargo build --locked --release
 
 # ステージ3: Runtime - 最小限の本番イメージ
