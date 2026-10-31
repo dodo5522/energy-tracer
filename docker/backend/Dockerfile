@@ -27,10 +27,12 @@ FROM chef AS builder
 ENV RUSTC_WRAPPER=sccache
 
 COPY --from=planner $RECIPE_FILE $RECIPE_FILE
-COPY ./backend/ /work/backend/
 RUN --mount=type=cache,target=$SCCACHE_DIR,sharing=locked \
-    cargo chef cook --release --recipe-path $RECIPE_FILE
+    mkdir -p backend \
+    && cd backend \
+    && cargo chef cook --release --recipe-path $RECIPE_FILE
 
+COPY ./backend/ /work/backend/
 RUN cd backend \
     && cargo build --locked --release
 
