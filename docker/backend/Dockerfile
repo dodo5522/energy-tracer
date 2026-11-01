@@ -25,6 +25,7 @@ RUN cd backend \
 FROM chef AS builder
 
 ENV RUSTC_WRAPPER=sccache
+ENV CARGO_INCREMENTAL=0
 
 COPY --from=planner $RECIPE_FILE $RECIPE_FILE
 RUN --mount=type=cache,target=$SCCACHE_DIR,sharing=locked \
