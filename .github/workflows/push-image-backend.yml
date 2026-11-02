@@ -45,3 +45,5 @@ jobs:
           context: .
           file: docker/backend/Dockerfile
           platforms: linux/amd64
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
