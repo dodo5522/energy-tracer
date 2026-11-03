@@ -1,8 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-cargo run --package infra-db-migration -- up
+cd $(dirname $0)
 
+export $(grep -v '^#' ./.env | xargs)
+cargo run --package infra-db-migration -- up
 cargo-watch \
   --delay 1 \
   --watch Cargo.toml \
