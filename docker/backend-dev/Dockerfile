@@ -1,5 +1,6 @@
 FROM ubuntu:26.04
 WORKDIR /work
+USER root
 
 RUN --mount=type=cache,target=/var/lib/apt/lists/ \
     --mount=type=cache,target=/var/cache/apt/ \
@@ -21,7 +22,7 @@ COPY mise.toml /etc/mise/config.toml
 RUN mise install --system \
     && mise reshim --system
 
-ENV PATH="/usr/local/share/mise/shims:${PATH}"
+ENV PATH="/usr/local/share/mise/shims:/root/.cargo/bin:${PATH}"
 RUN cargo install cargo-watch
 COPY --chmod=755 ./backend/watch.sh /work/backend/watch.sh
 CMD ["/work/backend/watch.sh"]
