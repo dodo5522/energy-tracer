@@ -23,5 +23,5 @@ RUN mise install --system \
 
 ENV PATH="/usr/local/share/mise/shims:${PATH}"
 RUN cargo install cargo-watch
-COPY --chmod=755 ./backend/watch.sh /work/watch.sh
-CMD ["/work/watch.sh"]
+COPY --chmod=755 ./backend/watch.sh /work/backend/watch.sh
+CMD ["/work/backend/watch.sh"]
