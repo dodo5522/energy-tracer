@@ -1,5 +1,10 @@
 **/.env
+.aider*
 .idea
 .serena
+.steering
+.vscode
+.zed
+.DS_Store
 target
-.aider*
+tools/seeder/build/**
