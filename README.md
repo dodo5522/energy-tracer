@@ -3,6 +3,12 @@
 `axum + utoipa + SeaORM` を使ったバックエンド API プロジェクトです。  
 Rust バックエンドのルートは `backend/` です。
 
+## アーキテクチャ
+
+現在は Rust API とローカル PostgreSQL、TanStack Start の認証デモを開発しています。将来は個人利用・低コストを前提に、フロントエンドとバックエンドを ECS Fargate の 1 タスクに配置し、認証・設定を Neon PostgreSQL、発電の時系列データを DynamoDB で管理する構想です。これらの AWS 構成と認証・認可は未実装です。
+
+詳細は [アーキテクチャ設計](docs/02_architecture.md)、[認証・デバイス設計](docs/05_auth_device_design.md)、[Better Auth チュートリアル](docs/tutorials/better-auth-postgresql.md) を参照してください。
+
 ## ディレクトリ構成
 
 - `backend/` Rust バックエンド（Cargo ワークスペース）
@@ -23,8 +29,10 @@ Rust バックエンドのルートは `backend/` です。
 
 ### 1. Docker Compose で起動（DB + Backend）
 
+フロントエンドの Compose 設定は作業途中です。DB とバックエンドのみ起動する場合はサービスを指定します。
+
 ```bash
-docker compose up -d
+docker compose up -d db backend
 ```
 
 - DB: `127.0.0.1:5432`

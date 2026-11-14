@@ -1,6 +1,6 @@
 # 設計メモ
 
-最終更新日: 2026-03-07
+最終更新日: 2026-11-15
 
 ## 1. 目的
 
@@ -19,17 +19,15 @@
 - このプロジェクトは SSR 有効であるため、初回 HTTP リクエスト時は対象ルートのコンポーネントがサーバで実行される。
 - ただし、最終的に画面状態が確定するタイミングは、コンポーネント内で使っているデータ取得方式に依存する（例: `useSession`）。
 
-### 3.2 Better Auth `useSession` の実行フロー（`/demo/better-auth`）
+### 3.2 Better Auth `useSession` の実行フロー
 
-- 対象ルート: `frontend/src/routes/demo/better-auth.tsx`
-- ルート定義: `createFileRoute('/demo/better-auth')({ component: BetterAuthDemo })`
-- この画面では `authClient.useSession()` を利用している。
+- ログイン画面とヘッダーでは `authClient.useSession()` を利用している。
 - `useSession` の内部実装はサーバ環境ではセッション取得フェッチを実行せず、クライアント hydration 後に取得を開始する。
 - そのため、初回 SSR HTML では `isPending: true` の初期分岐（ローディング表示）になりうる。
 
 ```mermaid
 flowchart TB
-    A["/demo/better-auth へアクセス"] --> B["Route.component = BetterAuthDemo を実行"]
+    A["認証画面へアクセス"] --> B["認証コンポーネントを実行"]
     B --> C{"実行環境"}
     C -->|SSR server| D["useSession は初期状態\n(isPending=true)"]
     C -->|Client hydration後| E["useSession がセッション取得を開始"]
@@ -97,7 +95,7 @@ flowchart TB
     E --> F["Server から fetch() 実行"]
 ```
 
-### 3.7 現時点の Rust API client 方針
+### 3.7 Rust API client の方針
 
 - Rust backend 向けの HTTP 呼び出しは、route component 内へ `fetch(...)` を直書きせず `integrations/api` に集約する。
 - まずは以下のような薄い構成から始める。
@@ -109,7 +107,7 @@ flowchart TB
     - 必要に応じて `frontend/src/integrations/api/types.ts`
         - backend DTO の型
 - route 側は `useQuery({ queryKey, queryFn })` に専念し、`queryFn` として `integrations/api` の関数を渡す。
-- BFF 的な中継や認可制御が必要になった場合のみ、`routes/api` にサーバルートを追加して backend との間に挟む。
+- 将来の保護対象 API は TanStack Start サーバーで認証を確認してから Rust に中継する。現行の直接呼び出しは移行対象であり、画面の表示制御だけを認可としない。詳細は [認証・デバイス設計](05_auth_device_design.md) を参照する。
 
 ## 4. 参考 URL
 
