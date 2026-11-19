@@ -57,6 +57,6 @@ services:
         eval $(/usr/local/bin/mise activate bash) &&
         cd frontend &&
         pnpm install &&
-        pnpm exec auth migrate --yes --config src/lib/auth-migration.ts &&
+        pnpm exec auth migrate --yes --config src/lib/auth/migration.server.ts &&
         pnpm dev --host 0.0.0.0
       "

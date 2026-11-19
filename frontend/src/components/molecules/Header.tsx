@@ -17,7 +17,7 @@ import {Link, useNavigate} from '@tanstack/react-router';
 import {ChartLine, Menu, Settings, X} from 'lucide-react';
 import {useState} from 'react';
 
-import {authClient} from '#/lib/auth-client.ts';
+import {authClient} from '#/lib/auth/client';
 import BetterAuthHeader from './HeaderUser.tsx';
 
 const Offset = styled('div')(({theme}) => theme.mixins.toolbar);

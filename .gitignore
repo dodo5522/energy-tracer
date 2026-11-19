@@ -1,7 +1,7 @@
 **/.env
 .aider*
 .idea
-.pnpm-store
+.pnpm*/**
 .serena
 .steering
 .vscode

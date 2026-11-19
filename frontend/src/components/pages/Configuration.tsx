@@ -12,7 +12,7 @@ import {Navigate} from '@tanstack/react-router';
 import {RefreshCw} from 'lucide-react';
 import {Loading} from '#/components/atoms';
 import {getLabels} from '#/integrations/home-energy-manager';
-import {authClient} from '#/lib/auth-client.ts';
+import {authClient} from '#/lib/auth/client';
 import type {LoginSearch} from '#/types';
 
 interface ConfigurationProps {
