@@ -35,3 +35,28 @@ services:
       - ./backend/.env
     volumes:
       - ./:/work
+    working_dir: /work
+
+  frontend:
+    container_name: energy-tracer-fe
+    build:
+      context: .
+      dockerfile: ./docker/frontend-dev/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env.local
+    volumes:
+      - ./:/work
+    working_dir: /work
+    command: >
+      bash -c "
+        eval $(/usr/local/bin/mise activate bash) &&
+        cd frontend &&
+        pnpm install &&
+        pnpm exec auth migrate --yes --config src/lib/auth-migration.ts &&
+        pnpm dev --host 0.0.0.0
+      "
