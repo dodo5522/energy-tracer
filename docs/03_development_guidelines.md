@@ -73,7 +73,7 @@
 
 ### 4.5 ビルド・テスト・開発コマンド
 
-- `docker compose up -d` で PostgreSQL を起動し、マイグレーション、APIサーバを起動。
+- 開発用ベースイメージを `docker build -t base-dev:latest -f docker/base-dev/Dockerfile .` で準備後、`docker compose up -d db backend` で PostgreSQL と API サーバを起動する。バックエンド起動時に SeaORM マイグレーションを実行する。frontend の Compose 設定は作業途中。
 - `cd backend && cargo run` で API サーバを起動（`BIND_ADDR:BIND_PORT` にバインド）。
 - `cd backend && cargo test` でワークスペース全体のテストを実行（存在する場合）。
 - `cd backend && cargo run -p infra-db-migration -- status` でマイグレーションの状態確認。
