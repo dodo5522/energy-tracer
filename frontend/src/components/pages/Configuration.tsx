@@ -20,22 +20,29 @@ interface ConfigurationProps {
 }
 
 const Configuration = ({search}: ConfigurationProps) => {
-  const {data: session} = authClient.useSession();
+  const {
+    data: session,
+    isPending: isPendingSession,
+  } = authClient.useSession();
   const {
     data: labels = [],
     isFetching,
-    isPending,
+    isPending: isPendingLabels,
     refetch,
   } = useQuery({
     queryKey: ['labels'],
     queryFn: getLabels,
+    enabled: !isPendingSession && !!session?.user,
   });
 
-  if (isPending) {
+  if (isPendingSession) {
     return <Loading/>;
   }
-  if (!session?.user) {
+  else if (!session?.user) {
     return <Navigate to="/login" search={search} replace/>;
+  }
+  else if (isPendingLabels) {
+    return <Loading/>;
   }
 
   return (
