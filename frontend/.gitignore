@@ -13,3 +13,4 @@ dist-ssr
 .vscode
 __unconfig*
 todos.json
+.neon
