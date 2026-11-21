@@ -11,9 +11,9 @@ import {useQuery} from '@tanstack/react-query';
 import {Navigate} from '@tanstack/react-router';
 import {RefreshCw} from 'lucide-react';
 import {Loading} from '#/components/atoms';
-import {getLabels} from '#/integrations/home-energy-manager';
+import {getLabels} from '#/lib/energy/generation.functions';
 import {authClient} from '#/lib/auth/client';
-import type {LoginSearch} from '#/types';
+import type { LoginSearch } from '#/types';
 
 interface ConfigurationProps {
   search: LoginSearch;
