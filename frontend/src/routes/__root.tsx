@@ -18,7 +18,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Home energy manager',
+        title: 'energy tracer',
       },
     ],
     links: [
