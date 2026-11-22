@@ -11,31 +11,38 @@ import {useQuery} from '@tanstack/react-query';
 import {Navigate} from '@tanstack/react-router';
 import {RefreshCw} from 'lucide-react';
 import {Loading} from '#/components/atoms';
-import {getLabels} from '#/integrations/home-energy-manager';
-import {authClient} from '#/lib/auth-client.ts';
-import type {LoginSearch} from '#/types';
+import {getLabels} from '#/lib/energy/generation.functions';
+import {authClient} from '#/lib/auth/client';
+import type { LoginSearch } from '#/types';
 
 interface ConfigurationProps {
   search: LoginSearch;
 }
 
 const Configuration = ({search}: ConfigurationProps) => {
-  const {data: session} = authClient.useSession();
+  const {
+    data: session,
+    isPending: isPendingSession,
+  } = authClient.useSession();
   const {
     data: labels = [],
     isFetching,
-    isPending,
+    isPending: isPendingLabels,
     refetch,
   } = useQuery({
     queryKey: ['labels'],
     queryFn: getLabels,
+    enabled: !isPendingSession && !!session?.user,
   });
 
-  if (isPending) {
+  if (isPendingSession) {
     return <Loading/>;
   }
-  if (!session?.user) {
+  else if (!session?.user) {
     return <Navigate to="/login" search={search} replace/>;
+  }
+  else if (isPendingLabels) {
+    return <Loading/>;
   }
 
   return (

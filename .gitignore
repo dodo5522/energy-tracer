@@ -1,5 +1,13 @@
 **/.env
-.idea
-.serena
-target
 .aider*
+.idea
+.pnpm*/**
+.serena
+.steering
+.vscode
+.zed
+.DS_Store
+target
+tools/seeder/build/**
+tools/seeder/data/**/*.csv
+

@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import {Navigate} from '@tanstack/react-router';
 import {Loading} from '#/components/atoms';
-import {authClient} from '#/lib/auth-client';
+import {authClient} from '#/lib/auth/client';
 import type {LoginSearch} from '#/types';
 
 interface TopProps {

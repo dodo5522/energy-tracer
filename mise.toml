@@ -2,6 +2,7 @@
 claude = "latest"
 codex = "latest"
 node = "24.22.1"
+pnpm = "9.4.0"
 pre-commit = "latest"
 python = "3.12"
 rust = "1.96.1"

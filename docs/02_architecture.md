@@ -1,6 +1,6 @@
 # アーキテクチャ設計
 
-最終更新日: 2026-02-25
+最終更新日: 2026-11-15
 
 ## 1. 目的
 
@@ -9,18 +9,39 @@
 
 ## 2. 全体構成
 
-- Rust バックエンド API（`axum + utoipa + SeaORM`）
-- TanStack Start ベースの Web フロントエンド（SSR 対応）
-- frontend（TanStack Start）の API ルートで Better Auth を提供
-- DB は PostgreSQL を想定
-- コンテナ構成は未確定（ローカル開発は Docker Compose 、本番環境はECSを予定）
+### 現在
 
-### 2.1 構成イメージ
+Rust API は SeaORM と PostgreSQL を使用し、ローカル開発には Docker Compose を使う。TanStack Start には Better Auth のルート、画面、PostgreSQL 接続設定があるが、認証・認可の完成や本番運用は未検証である。時系列データの DynamoDB 移行は未実装。
 
-1. 自宅デバイス / PC がバックエンド API に発電データを `POST`
-2. バックエンドが DB に保存
-3. ユーザーがフロントエンド Web 画面にアクセス
-4. フロントエンドは認証（Better Auth）を使って可視化画面を提供（可視化本体は今後実装）
+### 将来案（未実装）
+
+個人利用で短時間の停止を許容し、学習と低コストを優先する。
+
+```mermaid
+flowchart LR
+    Browser[ブラウザ] -->|HTTPS / セッション| Front
+    Device[自宅デバイス] -->|HTTPS / API キー| Front
+    subgraph ECS[ECS Fargate: 1 サービス / 1 タスク]
+        Front[TanStack Start / Better Auth]
+        Back[Rust API / SeaORM]
+        Front -->|localhost| Back
+    end
+    Front -->|認証情報| PG[(Neon PostgreSQL)]
+    Back -->|設備・設定・デバイス| PG
+    Back -->|発電時系列| Dynamo[(DynamoDB)]
+```
+
+- 別コンテナを同じタスクに同居させ、Rust API は localhost で待ち受ける。独立したデプロイ・スケールが必要になれば別サービスを検討する。
+- ブラウザのセッションはフロントエンドで検証し、信頼できる内部経路で Rust に利用者を伝える。デバイスの API キーは Rust 側で管理・検証する。詳細と信頼境界は [認証・デバイス設計](05_auth_device_design.md) を参照する。
+- 認証と業務データは PostgreSQL、時系列は DynamoDB に置く。アクセスパターン、キー設計、保持・削除、既存データの移行と切り戻しは未設計。
+- ローカルでは PostgreSQL を維持する。Better Auth のテーブルと業務テーブルの所有・マイグレーションを分離する。
+
+### 運用・費用の検討事項
+
+- Fargate は 0.25 vCPU / 512 MiB から測定し、2 コンテナの使用量に応じて増やす。単一タスクのためデプロイや障害時の停止を許容する。
+- パブリックサブネットと IPv4 を使い ALB・NAT Gateway を省く案を検討する。HTTPS 終端、証明書更新、タスク交換時の DNS 更新、外向き通信は未設計。
+- DynamoDB Standard のプロビジョンド容量と無料枠、Neon のプラン・使用量を確認する。Fargate、IPv4、ログ、バックアップ、データ転送などは別途費用がかかり得る。リージョンと実行条件を決めて見積もる。
+- Neon のスリープ復帰・接続プールの再接続、バックアップと復元、権限・秘密情報の管理を検証する。
 
 ## 3. バックエンドアーキテクチャ（`backend/`）
 
@@ -63,8 +84,7 @@
 
 ## 5. 今後の設計論点（未確定）
 
-- 同一送信元の判定方法（`device_id` 等）とレート制御エラー仕様
-- API 送信元認証（JWT）導入のタイミングと移行方針
-- フロントエンドの保護ページ導線（未ログイン時リダイレクト含む）
-- 可視化画面の API クライアント層の配置と責務
-
+- 同一送信元の判定方法とレート制御・エラー仕様。
+- セッションと内部 API の信頼境界、デバイス認証・権限、ユーザー削除時の DynamoDB データの扱い。
+- 発電データの DynamoDB のキー・アクセスパターンと移行手順。
+- 保護ページ導線と API ごとの認可、外部公開前の登録制限。

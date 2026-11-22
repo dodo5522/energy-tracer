@@ -12,7 +12,7 @@ import {
 import {Navigate} from '@tanstack/react-router';
 import {type SubmitEvent, useState} from 'react';
 import {Loading} from '#/components/atoms';
-import {authClient} from '#/lib/auth-client';
+import {authClient} from '#/lib/auth/client';
 
 interface LogInProps {
   redirectTo: string;
