@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   IconButton,
   List,
@@ -10,7 +11,7 @@ import {
 import {useQuery} from '@tanstack/react-query';
 import {Navigate} from '@tanstack/react-router';
 import {RefreshCw} from 'lucide-react';
-import {Loading} from '#/components/atoms';
+import {AlertSession, Loading} from '#/components/atoms';
 import {getLabels} from '#/lib/energy/generation.functions';
 import {authClient} from '#/lib/auth/client';
 import type { LoginSearch } from '#/types';
@@ -23,12 +24,14 @@ const Configuration = ({search}: ConfigurationProps) => {
   const {
     data: session,
     isPending: isPendingSession,
+    error: errorSession,
   } = authClient.useSession();
   const {
     data: labels = [],
     isFetching,
     isPending: isPendingLabels,
     refetch,
+    error: errorLabels,
   } = useQuery({
     queryKey: ['labels'],
     queryFn: getLabels,
@@ -37,11 +40,9 @@ const Configuration = ({search}: ConfigurationProps) => {
 
   if (isPendingSession) {
     return <Loading/>;
-  }
-  else if (!session?.user) {
+  } else if (!session?.user) {
     return <Navigate to="/login" search={search} replace/>;
-  }
-  else if (isPendingLabels) {
+  } else if (isPendingLabels) {
     return <Loading/>;
   }
 
@@ -63,7 +64,7 @@ const Configuration = ({search}: ConfigurationProps) => {
         elevation={8}
         sx={{
           width: '100%',
-          maxWidth: 768,
+          maxWidth: '90%',
           p: 4,
           borderRadius: 2,
           backdropFilter: 'blur(10px)',
@@ -92,32 +93,37 @@ const Configuration = ({search}: ConfigurationProps) => {
             <RefreshCw size={14}/>
           </IconButton>
         </Stack>
-        <List sx={{p: 0}}>
-          {labels.map((label) => (
-            <ListItem
-              key={label.label}
-              sx={{
-                mb: 1,
-                borderRadius: 1.5,
-                px: 2,
-                py: 1.25,
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                bgcolor: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(8px)',
-                boxShadow: 1,
-              }}
-            >
-              <Stack direction="row" spacing={2}>
-                <Typography variant="body1" sx={{color: 'common.white'}}>
-                  {label.label}
-                </Typography>
-                <Typography variant="body1" sx={{color: 'common.white'}}>
-                  {label.remark}
-                </Typography>
-              </Stack>
-            </ListItem>
-          ))}
-        </List>
+
+        <AlertSession hasSessionError={!!errorSession} anotherError={errorLabels?.message} />
+
+        {!errorSession && !errorLabels
+          ? <List sx={{ p: 0 }}>
+            {labels.map((label) => (
+              <ListItem
+                key={label.label}
+                sx={{
+                  mb: 1,
+                  borderRadius: 1.5,
+                  px: 2,
+                  py: 1.25,
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  bgcolor: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(8px)',
+                  boxShadow: 1,
+                }}
+              >
+                <Stack direction="row" spacing={2}>
+                  <Typography variant="body1" sx={{ color: 'common.white' }}>
+                    {label.label}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: 'common.white' }}>
+                    {label.remark}
+                  </Typography>
+                </Stack>
+              </ListItem>
+            ))}
+          </List>
+          : null}
       </Paper>
     </Box>
   );
