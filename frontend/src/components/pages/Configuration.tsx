@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   IconButton,
   List,
@@ -24,13 +23,15 @@ const Configuration = ({search}: ConfigurationProps) => {
   const {
     data: session,
     isPending: isPendingSession,
+    isRefetching,
     error: errorSession,
+    refetch: refetchSession,
   } = authClient.useSession();
   const {
     data: labels = [],
     isFetching,
     isPending: isPendingLabels,
-    refetch,
+    refetch: refetchLabels,
     error: errorLabels,
   } = useQuery({
     queryKey: ['labels'],
@@ -40,10 +41,12 @@ const Configuration = ({search}: ConfigurationProps) => {
 
   if (isPendingSession) {
     return <Loading/>;
-  } else if (!session?.user) {
-    return <Navigate to="/login" search={search} replace/>;
-  } else if (isPendingLabels) {
-    return <Loading/>;
+  } else if (!errorSession) {
+    if (!session?.user) {
+      return <Navigate to="/login" search={search} replace/>;
+    } else if (isPendingLabels) {
+      return <Loading/>;
+    }
   }
 
   return (
@@ -87,8 +90,14 @@ const Configuration = ({search}: ConfigurationProps) => {
             size="large"
             edge="start"
             color="inherit"
-            disabled={isFetching}
-            onClick={() => void refetch()}
+            disabled={isFetching || isRefetching}
+            onClick={async () => {
+              if (errorSession) {
+                await refetchSession();
+              } else {
+                void refetchLabels();
+              }
+            }}
           >
             <RefreshCw size={14}/>
           </IconButton>
