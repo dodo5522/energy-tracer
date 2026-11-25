@@ -15,8 +15,8 @@ import { authClient } from '#/lib/auth/client';
 import { HeaderUser } from '#/components/molecules';
 
 interface DrawerProps {
-  isOpened: boolean,
-  onClickToClose: () => void,
+  isOpened: boolean;
+  onClickToClose: () => void;
 }
 
 const Drawer = (props: DrawerProps) => {
