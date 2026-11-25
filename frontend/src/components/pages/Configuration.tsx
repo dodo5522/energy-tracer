@@ -1,6 +1,5 @@
 import {
   Box,
-  IconButton,
   List,
   ListItem,
   Paper,
@@ -10,7 +9,7 @@ import {
 import {useQuery} from '@tanstack/react-query';
 import {Navigate} from '@tanstack/react-router';
 import {RefreshCw} from 'lucide-react';
-import {AlertSession, Loading} from '#/components/atoms';
+import {AlertSession, IconButton, Loading} from '#/components/atoms';
 import {getLabels} from '#/lib/energy/generation.functions';
 import {authClient} from '#/lib/auth/client';
 import type { LoginSearch } from '#/types';
@@ -38,6 +37,7 @@ const Configuration = ({search}: ConfigurationProps) => {
     queryFn: getLabels,
     enabled: !isPendingSession && !!session?.user,
   });
+  const isRefreshing = isFetching || isRefetching;
 
   if (isPendingSession) {
     return <Loading/>;
@@ -90,13 +90,22 @@ const Configuration = ({search}: ConfigurationProps) => {
             size="large"
             edge="start"
             color="inherit"
-            disabled={isFetching || isRefetching}
+            isSpinning={isRefreshing}
+            disabled={isRefreshing}
+            aria-label={isRefreshing ? '更新中' : '再取得'}
+            aria-busy={isRefreshing}
             onClick={async () => {
               if (errorSession) {
                 await refetchSession();
               } else {
                 void refetchLabels();
               }
+            }}
+            // refer to: https://mui.com/material-ui/customization/how-to-customize/#state-classes
+            sx={{
+              '&.Mui-disabled': {
+                color: 'inherit',
+              },
             }}
           >
             <RefreshCw size={14}/>
